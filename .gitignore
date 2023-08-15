@@ -1,0 +1,42 @@
+# Logs
+logs
+*.log
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# dotenv environment variables file
+.env
+
+# Debugging with VS Code
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Compiled binary addons
+build/Release
+
+# Output of 'npm build'
+dist/
+
+# Yarn Integrity file
+.yarn-integrity
+
+# IDE-specific files and folders
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+*.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
