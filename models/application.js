@@ -23,12 +23,12 @@ const applicationSchema = new mongoose.Schema({
 const Application = mongoose.model('Application', applicationSchema);
 
 function validateApp(app) {
-  const schema = {
+  const schema = Joi.object({
     name: Joi.string().min(3).required(),
     description: Joi.string().min(5).required(),
-    is_deleted: Joi.boolean().default(false),
-  };
-  return Joi.validate(app, schema);
+    // is_deleted: Joi.boolean().default(false),
+  });
+  return schema.validate(app);
 }
 
 exports.applicationSchema = applicationSchema;
