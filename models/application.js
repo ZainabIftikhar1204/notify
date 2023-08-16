@@ -31,6 +31,16 @@ function validateApp(app) {
   return schema.validate(app);
 }
 
+function validateUpdateApp(app) {
+  const schema = Joi.object({
+    name: Joi.string().min(3),
+    description: Joi.string().min(5),
+    is_deleted: Joi.boolean(),
+  });
+  return schema.validate(app);
+}
+
 exports.applicationSchema = applicationSchema;
 exports.Application = Application;
 exports.validate = validateApp;
+exports.validateUpdateApp = validateUpdateApp;
