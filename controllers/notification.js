@@ -57,7 +57,7 @@ async function updateNotification(req, res) {
     const event = await Event.findById(req.query.eventId); // Assuming you have the Event model imported
     if (!event) return res.status(400).send('Invalid event.');
     const notification = await Notification.findByIdAndUpdate(
-      req.query.notificationId,
+      req.params.id,
       req.body,
       {
         new: true,
@@ -85,3 +85,4 @@ async function updateNotification(req, res) {
 
 exports.listAllNotifications = listAllNotifications;
 exports.createNotification = createNotification;
+exports.updateNotification = updateNotification;
