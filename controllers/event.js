@@ -38,7 +38,7 @@ async function updateEvent(req, res) {
   if (!application) return res.status(400).send('Invalid application.');
 
   const event = await Event.findByIdAndUpdate(
-    req.query.applicationid,
+    req.query.applicationid, // change krna hai to eventid baad may krna hai but :P
     req.body,
     {
       new: true,

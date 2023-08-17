@@ -27,7 +27,7 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 10,
-    maxlength: 100,
+    maxlength: 250,
   },
   tags: [
     {
@@ -43,12 +43,14 @@ const notificationSchema = new mongoose.Schema({
 
 const Notification = mongoose.model('Notification', notificationSchema);
 
-function validateNotification(event) {
+function validateNotification(notification) {
   const schema = Joi.object({
     name: Joi.string().min(3).required(),
     description: Joi.string().min(5).required(),
+    tags: Joi.array(),
+    templatebody: Joi.string().min(10).max(250),
   });
-  return schema.validate(event);
+  return schema.validate(notification);
 }
 
 // function validateUpdateEvent(event) {

@@ -5,11 +5,10 @@ const tagSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 1,
-    maxlength: 50,
+    maxlength: 30,
   },
-  // Other fields specific to your Tag model
 });
 
 const Tag = mongoose.model('Tag', tagSchema);
 
-module.exports = Tag;
+exports.Tag = Tag;
