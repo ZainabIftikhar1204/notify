@@ -47,7 +47,6 @@ function validateNotification(notification) {
   const schema = Joi.object({
     name: Joi.string().min(3).required(),
     description: Joi.string().min(5).required(),
-    tags: Joi.array(),
     templatebody: Joi.string().min(10).max(250),
   });
   return schema.validate(notification);
