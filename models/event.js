@@ -1,4 +1,3 @@
-const Joi = require('joi');
 const mongoose = require('mongoose');
 
 const eventSchema = new mongoose.Schema({
@@ -18,6 +17,10 @@ const eventSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  is_active: {
+    type: Boolean,
+    default: true,
+  },
   applicationId: {
     type: mongoose.Schema.Types.ObjectId, // Change to mongoose.Schema.Types.ObjectId
     ref: 'Application', // Add a reference to the 'Application' model
@@ -27,25 +30,5 @@ const eventSchema = new mongoose.Schema({
 
 const Event = mongoose.model('Event', eventSchema);
 
-function validateEvent(event) {
-  const schema = Joi.object({
-    name: Joi.string().min(3).required(),
-    description: Joi.string().min(5).required(),
-  });
-  return schema.validate(event);
-}
-
-function validateUpdateEvent(event) {
-  const schema = Joi.object({
-    name: Joi.string().min(3),
-    description: Joi.string().min(5),
-  });
-  return schema.validate(event);
-}
-
 exports.eventSchema = eventSchema;
 exports.Event = Event;
-exports.validate = validateEvent;
-exports.validateEventUpdate = validateUpdateEvent;
-
-// exports.validateUpdateEvent = validateUpdateEvent;

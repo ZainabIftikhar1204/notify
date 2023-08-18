@@ -1,73 +1,68 @@
-const {
-  Application,
-  validate,
-  validateUpdateApp,
-} = require('../models/application');
+const { Application } = require('../models/application');
 
+// GET api/applications
 async function listAllApplications(req, res) {
-  try {
-    const applications = await Application.find({});
-    return res.send(applications);
-  } catch (error) {
-    return res.status(500).send('Internal server error');
-  }
+  const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
+  const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 10 if not specified
+
+  const startIndex = (page - 1) * limit;
+
+  const totalDocuments = await Application.countDocuments();
+  const totalPages = Math.ceil(totalDocuments / limit);
+
+  const applications = await Application.find({}).skip(startIndex).limit(limit);
+
+  const paginationInfo = {
+    currentPage: page,
+    totalPages,
+    pageSize: limit,
+    totalCount: totalDocuments,
+  };
+
+  return res.json({ applications, pagination: paginationInfo });
 }
 
+// POST /api/applications
 async function createApplication(req, res) {
-  try {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+  let application = new Application({
+    name: req.body.name,
+    description: req.body.description,
+    is_deleted: false,
+    is_active: true,
+  });
+  application = await application.save();
 
-    let application = new Application({
-      name: req.body.name,
-      description: req.body.description,
-      is_deleted: false,
-    });
-    application = await application.save();
-
-    return res.send(application);
-  } catch (error) {
-    return res.status(500).send('Internal server error');
-  }
+  return res.send(application);
 }
 
+// PATCH /api/application/:id
 async function updateApplication(req, res) {
-  const { error } = validateUpdateApp(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  const application = await Application.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+    },
+  );
 
-  try {
-    const application = await Application.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-      },
-    );
+  if (!application)
+    return res
+      .status(404)
+      .send('The application with the given ID was not found.');
 
-    if (!application)
-      return res
-        .status(404)
-        .send('The application with the given ID was not found.');
-
-    return res.send(application);
-  } catch (err) {
-    return res.status(500).send('Internal server error');
-  }
+  return res.send(application);
 }
 
+// GET /api/applications/:id
 async function listApplication(req, res) {
-  try {
-    const application = await Application.findById(req.params.id);
+  const application = await Application.findById(req.params.id);
 
-    if (!application)
-      return res
-        .status(404)
-        .send('The application with the given ID was not found.');
+  if (!application)
+    return res
+      .status(404)
+      .send('The application with the given ID was not found.');
 
-    return res.send(application);
-  } catch (error) {
-    return res.status(500).send('Internal server error');
-  }
+  return res.send(application);
 }
 
 exports.listAllApplications = listAllApplications;

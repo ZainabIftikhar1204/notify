@@ -2,7 +2,7 @@ const winston = require('winston');
 
 // eslint-disable-next-line no-unused-vars
 module.exports = function (err, req, res, next) {
-  winston.error(err.message, err);
+  winston.error.summary(err.message, err);
 
   res.status(500).send('Something failed.');
 };

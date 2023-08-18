@@ -5,9 +5,17 @@ const {
   listAllEvents,
 } = require('../controllers/event');
 
+const errorHandler = require('../middleware/error');
+const {
+  validateEvent,
+  validateUpdateEvent,
+} = require('../middleware/validation');
+
 const router = express.Router();
+router.use(errorHandler);
+
 router.get('/', listAllEvents);
-router.post('/', createEvent);
-router.patch('/:id', updateEvent);
+router.post('/', validateEvent, createEvent);
+router.patch('/:id', validateUpdateEvent, updateEvent);
 
 module.exports = router;

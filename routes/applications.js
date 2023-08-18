@@ -6,10 +6,16 @@ const {
   listApplication,
 } = require('../controllers/application');
 
+const errorHandler = require('../middleware/error');
+const { validateApp, validateUpdateApp } = require('../middleware/validation');
+
 const router = express.Router();
+
+router.use(errorHandler);
+
 router.get('/', listAllApplications);
-router.post('/', createApplication);
-router.patch('/:id', updateApplication);
+router.post('/', validateApp, createApplication);
+router.patch('/:id', validateUpdateApp, updateApplication);
 router.get('/:id', listApplication);
 
 module.exports = router;
