@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "eslint --fix index.js",
     "format": "prettier -w",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate":"npx knex migrate:latest --knexfile startup/knexfile.js"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +17,9 @@
     "debug": "^4.3.4",
     "express": "^4.18.2",
     "joi": "^17.9.2",
+    "knex": "^2.5.1",
     "mongoose": "^7.4.3",
+    "pg": "^8.11.3",
     "winston": "^3.10.0"
   },
   "devDependencies": {
