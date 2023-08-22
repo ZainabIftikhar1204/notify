@@ -1,4 +1,4 @@
-const { Application } = require('../models/application');
+const { Application } = require('../../models/application');
 
 // GET api/applications
 async function listAllApplications(req, res) {

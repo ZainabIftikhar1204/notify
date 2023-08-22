@@ -1,5 +1,5 @@
-const { Application } = require('../models/application');
-const { Event } = require('../models/event');
+const { Application } = require('../../models/application');
+const { Event } = require('../../models/event');
 
 // GET api/events?applicationId=xxx
 async function listAllEvents(req, res) {

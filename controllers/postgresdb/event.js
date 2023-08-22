@@ -1,4 +1,4 @@
-const knex = require('../startup/dbpg');
+const knex = require('../../startup/postgresdb/db');
 
 async function listAllEvents(req, res) {
   const { applicationId } = req.query;
@@ -112,6 +112,6 @@ async function updateEvent(req, res) {
   return res.send(updatedEvent);
 }
 
-exports.pgListAllEvents = listAllEvents;
-exports.pgCreateEvent = createEvent;
-exports.pgUpdateEvent = updateEvent;
+exports.listAllEvents = listAllEvents;
+exports.createEvent = createEvent;
+exports.updateEvent = updateEvent;

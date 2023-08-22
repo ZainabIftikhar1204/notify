@@ -1,11 +1,13 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const winston = require('winston');
 const express = require('express');
+const config = require('config');
 
 const app = express();
+const dbConfig = config.get('database');
 
-// require('./startup/db')();
-require('./startup/dbpg')();
+// eslint-disable-next-line import/no-dynamic-require
+require(`./startup/${dbConfig.dbName}/db`)();
 require('./startup/routes')(app);
 
 const port = process.env.PORT || 3000;

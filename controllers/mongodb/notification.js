@@ -1,9 +1,9 @@
 /* eslint-disable no-underscore-dangle */
-const { Event } = require('../models/event');
-const { Application } = require('../models/application');
-const { Notification } = require('../models/notification');
-const { Tag } = require('../models/tag');
-const { Message } = require('../models/message');
+const { Event } = require('../../models/event');
+const { Application } = require('../../models/application');
+const { Notification } = require('../../models/notification');
+const { Tag } = require('../../models/tag');
+const { Message } = require('../../models/message');
 
 // GET /api/notificcation?eventId=xxx&appId=xxx
 async function listAllNotifications(req, res) {

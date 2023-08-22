@@ -1,17 +1,14 @@
 const express = require('express');
+const config = require('config');
+
+const dbConfig = config.get('database');
 const {
   listAllApplications,
   createApplication,
   updateApplication,
   listApplication,
-} = require('../controllers/application');
-
-const {
-  pgListAllApplications,
-  pgCreateApplication,
-  pgUpdateApplication,
-  pgListApplication,
-} = require('../controllers/applicationpg');
+  // eslint-disable-next-line import/no-dynamic-require
+} = require(`../controllers/${dbConfig.dbName}/application`);
 
 const errorHandler = require('../middleware/error');
 // const { validateApp, validateUpdateApp } = require('../middleware/validation');
@@ -20,10 +17,10 @@ const router = express.Router();
 
 router.use(errorHandler);
 
-router.get('/', pgListAllApplications);
-router.post('/', pgCreateApplication);
-router.patch('/:id', pgUpdateApplication);
-router.get('/:id', pgListApplication);
+router.get('/', listAllApplications);
+router.post('/', createApplication);
+router.patch('/:id', updateApplication);
+router.get('/:id', listApplication);
 
 // Roues for Monggose
 // router.get('/', listAllApplications);

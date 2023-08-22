@@ -1,7 +1,7 @@
-const knex = require('../startup/dbpg');
+const knex = require('../../startup/postgresdb/db');
 
 // GET api/applications
-async function pgListAllApplications(req, res) {
+async function listAllApplications(req, res) {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 3;
   const startIndex = (page - 1) * limit;
@@ -30,7 +30,7 @@ async function pgListAllApplications(req, res) {
 }
 
 // POST /api/applications
-async function pgCreateApplication(req, res) {
+async function createApplication(req, res) {
   const { name, description } = req.body;
 
   const [newApplication] = await knex('applications')
@@ -46,7 +46,7 @@ async function pgCreateApplication(req, res) {
 }
 
 // PATCH /api/application/:id
-async function pgUpdateApplication(req, res) {
+async function updateApplication(req, res) {
   const { id } = req.params;
   const updatedApplication = req.body;
 
@@ -67,7 +67,7 @@ async function pgUpdateApplication(req, res) {
   return res.send(application);
 }
 
-async function pgListApplication(req, res) {
+async function listApplication(req, res) {
   const { id } = req.params;
 
   // Fetch the application by ID
@@ -82,7 +82,7 @@ async function pgListApplication(req, res) {
   return res.send(application);
 }
 
-exports.pgListAllApplications = pgListAllApplications;
-exports.pgCreateApplication = pgCreateApplication;
-exports.pgUpdateApplication = pgUpdateApplication;
-exports.pgListApplication = pgListApplication;
+exports.listAllApplications = listAllApplications;
+exports.createApplication = createApplication;
+exports.updateApplication = updateApplication;
+exports.listApplication = listApplication;

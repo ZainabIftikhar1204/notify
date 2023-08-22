@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable camelcase */
-const knex = require('../startup/dbpg');
+const knex = require('../../startup/postgresdb/db');
 
 async function listAllNotifications(req, res) {
   const { eventId, appId } = req.query;
@@ -213,7 +213,7 @@ async function previewNotificationMessage(req, res) {
   return res.status(200).send('Messages Saved in DB');
 }
 
-exports.pglistAllNotifications = listAllNotifications;
-exports.pgCreateNotification = createNotification;
-exports.pgUpdateNotification = updateNotification;
-exports.pgPreviewNotificationMessage = previewNotificationMessage;
+exports.listAllNotifications = listAllNotifications;
+exports.createNotification = createNotification;
+exports.updateNotification = updateNotification;
+exports.previewNotificationMessage = previewNotificationMessage;

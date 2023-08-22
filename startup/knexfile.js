@@ -1,16 +1,19 @@
 /* eslint-disable prettier/prettier */
+const config=require('config');
 // Update with your config settings.
 
 /**
  * @type { Object.<string, import("knex").Knex.Config> }
  */
+
+const postgresDbConfig = config.get('database.postgresdb.connection');
 module.exports = {
   development: {
     client: 'postgresql',
     connection: {
-      database: 'Notify',
-      user: 'postgres',
-      password: "123456",
+      database: postgresDbConfig.database,
+      user: postgresDbConfig.user,
+      password: postgresDbConfig.password,
     },
     pool: {
       min: 2,
