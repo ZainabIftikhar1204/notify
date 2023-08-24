@@ -1,16 +1,21 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+const httpStatus = require('http-status-codes');
 const { Application } = require('../../models/application');
 
 // GET api/applications
 async function listAllApplications(req, res) {
+  const { filter } = req; // Default to empty filter if not specified
+  if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
   const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
   const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 10 if not specified
 
   const startIndex = (page - 1) * limit;
-
-  const totalDocuments = await Application.countDocuments();
+  const totalDocuments = await Application.countDocuments(filter);
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const applications = await Application.find({}).skip(startIndex).limit(limit);
+  const applications = await Application.find(filter)
+    .skip(startIndex)
+    .limit(limit);
 
   const paginationInfo = {
     currentPage: page,
@@ -19,7 +24,16 @@ async function listAllApplications(req, res) {
     totalCount: totalDocuments,
   };
 
-  return res.json({ applications, pagination: paginationInfo });
+  if (applications.length === 0) {
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      message: 'No applications found.',
+    });
+  }
+
+  return res
+    .status(httpStatus.StatusCodes.OK)
+    .json({ applications, pagination: paginationInfo });
 }
 
 // POST /api/applications
@@ -30,13 +44,36 @@ async function createApplication(req, res) {
     is_deleted: false,
     is_active: true,
   });
+
+  // check if application with the same name already exists
+  const existingApplication = await Application.findOne({
+    name: req.body.name,
+  });
+  if (existingApplication) {
+    return res.status(httpStatus.StatusCodes.CONFLICT).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
+      message: 'Application with the name already exists.',
+    });
+  }
   application = await application.save();
 
-  return res.send(application);
+  return res.status(httpStatus.StatusCodes.CREATED).send(application);
 }
 
 // PATCH /api/application/:id
 async function updateApplication(req, res) {
+  if (req.body.name) {
+    const existingApplication = await Application.findOne({
+      name: req.body.name,
+    });
+    if (existingApplication) {
+      return res.status(httpStatus.StatusCodes.CONFLICT).json({
+        error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
+        message: 'Application with the name already exists.',
+      });
+    }
+  }
+
   const application = await Application.findByIdAndUpdate(
     req.params.id,
     req.body,
@@ -46,23 +83,34 @@ async function updateApplication(req, res) {
   );
 
   if (!application)
-    return res
-      .status(404)
-      .send('The application with the given ID was not found.');
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      message: 'The application with the given ID was not found.',
+    });
 
-  return res.send(application);
+  return res.status(httpStatus.StatusCodes.OK).json({ application });
 }
 
 // GET /api/applications/:id
 async function listApplication(req, res) {
-  const application = await Application.findById(req.params.id);
+  try {
+    const application = await Application.findById(req.params.id);
+    if (!application) {
+      return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+        error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+        message: 'The application with the given ID was not found.',
+      });
+    }
 
-  if (!application)
-    return res
-      .status(404)
-      .send('The application with the given ID was not found.');
-
-  return res.send(application);
+    return res.status(httpStatus.OK).json(application);
+  } catch (error) {
+    return res.status(httpStatus.StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: httpStatus.getReasonPhrase(
+        httpStatus.StatusCodes.INTERNAL_SERVER_ERROR,
+      ),
+      message: 'Failed to retrieve application.',
+    });
+  }
 }
 
 exports.listAllApplications = listAllApplications;

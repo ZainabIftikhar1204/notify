@@ -1,21 +1,26 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+const httpStatus = require('http-status-codes');
 const knex = require('../../startup/postgresdb/db');
 
 // GET api/applications
 async function listAllApplications(req, res) {
+  const { filter } = req; // Default to empty filter if not specified
+  if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 3;
   const startIndex = (page - 1) * limit;
 
   // Get the total count of records
-  const [{ totalDocuments }] = await knex('applications').count(
-    '* as totalDocuments',
-  );
+  const [{ totalDocuments }] = await knex('applications')
+    .count('* as totalDocuments')
+    .where(filter);
 
   const totalPages = Math.ceil(totalDocuments / limit);
 
   // Retrieve paginated applications
   const applications = await knex('applications')
     .select('*')
+    .where(filter)
     .offset(startIndex)
     .limit(limit);
 
@@ -25,14 +30,30 @@ async function listAllApplications(req, res) {
     pageSize: limit,
     totalCount: totalDocuments,
   };
+  if (applications.length === 0) {
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      message: 'No applications found.',
+    });
+  }
 
-  return res.json({ applications, pagination: paginationInfo });
+  return res
+    .status(httpStatus.StatusCodes.OK)
+    .json({ applications, pagination: paginationInfo });
 }
 
 // POST /api/applications
 async function createApplication(req, res) {
   const { name, description } = req.body;
+  // checl if application with same name already exists
+  const application = await knex('applications').where({ name }).first();
 
+  if (application) {
+    return res.status(httpStatus.StatusCodes.CONFLICT).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
+      message: 'Application with the name already exists.',
+    });
+  }
   const [newApplication] = await knex('applications')
     .insert({
       name,
@@ -42,13 +63,25 @@ async function createApplication(req, res) {
     })
     .returning('*');
 
-  return res.send(newApplication);
+  return res.status(httpStatus.StatusCodes.CREATED).send(newApplication);
 }
 
 // PATCH /api/application/:id
 async function updateApplication(req, res) {
   const { id } = req.params;
   const updatedApplication = req.body;
+  if (req.body.name) {
+    const application = await knex('applications')
+      .where({ name: req.body.name })
+      .first();
+
+    if (application) {
+      return res.status(httpStatus.StatusCodes.CONFLICT).json({
+        error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
+        message: 'Application with the name already exists.',
+      });
+    }
+  }
 
   // Update the application record
   const updatedCount = await knex('applications')
@@ -56,9 +89,10 @@ async function updateApplication(req, res) {
     .update(updatedApplication);
 
   if (updatedCount === 0) {
-    return res
-      .status(404)
-      .send('The application with the given ID was not found.');
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      message: 'The application with the given ID was not found.',
+    });
   }
 
   // Fetch the updated application record
@@ -79,7 +113,7 @@ async function listApplication(req, res) {
       .send('The application with the given ID was not found.');
   }
 
-  return res.send(application);
+  return res.status(httpStatus.StatusCodes.OK).json({ application });
 }
 
 exports.listAllApplications = listAllApplications;

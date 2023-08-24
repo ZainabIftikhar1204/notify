@@ -17,10 +17,12 @@ const {
   validateUpdateNotification,
 } = require('../middleware/validation');
 
+const { getNotificationFilters } = require('../middleware/queryValidation');
+
 const router = express.Router();
 router.use(errorHandler);
 
-router.get('/', listAllNotifications);
+router.get('/', getNotificationFilters, listAllNotifications);
 router.post('/', validateNotification, createNotification);
 router.patch('/:id', validateUpdateNotification, updateNotification);
 router.post('/:id/message', previewNotificationMessage);

@@ -1,29 +1,29 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+const httpStatus = require('http-status-codes');
 const { Application } = require('../../models/application');
 const { Event } = require('../../models/event');
 
 // GET api/events?applicationId=xxx
 async function listAllEvents(req, res) {
+  let { filter } = req; // Default to empty filter if not specified
+  filter = { ...filter, applicationId: req.query.applicationId };
+  if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
   const application = await Application.findById(req.query.applicationId);
   if (!application)
-    return res
-      .status(404)
-      .send('The application with the given ID was not found.');
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      message: 'No applications found.',
+    });
 
   const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
   const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 10 if not specified
 
   const startIndex = (page - 1) * limit;
 
-  const totalDocuments = await Event.countDocuments();
+  const totalDocuments = await Event.countDocuments(filter);
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const events = await Event.find({
-    is_deleted: false,
-    // eslint-disable-next-line no-underscore-dangle
-    applicationId: application._id,
-  })
-    .skip(startIndex)
-    .limit(limit);
+  const events = await Event.find(filter).skip(startIndex).limit(limit);
 
   const paginationInfo = {
     currentPage: page,
@@ -32,46 +32,81 @@ async function listAllEvents(req, res) {
     totalCount: totalDocuments,
   };
 
-  return res.json({ events, pagination: paginationInfo });
+  return res
+    .status(httpStatus.StatusCodes.OK)
+    .json({ events, pagination: paginationInfo });
 }
 
-// GET api/events?applicationId=xxx
+// POST api/events?applicationId=xxx
 async function createEvent(req, res) {
-  const applicationId = await Application.findById(req.query.applicationId);
-  if (!applicationId) return res.status(400).send('Invalid application.');
+  const applicationId = await Application.findById(req.body.applicationId);
+  if (!applicationId)
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      message: 'Invalid application or Application Id not given',
+    });
+
+  // check if the event with the same name already exists in the application
+  const existingEvent = await Event.findOne({
+    name: req.body.name,
+    applicationId: req.body.applicationId,
+  });
+
+  if (existingEvent) {
+    return res.status(httpStatus.StatusCodes.CONFLICT).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
+      message: 'Event with the name already exists.',
+    });
+  }
 
   let event = new Event({
     name: req.body.name,
     description: req.body.description,
     is_deleted: false,
     is_active: true,
-    applicationId: req.query.applicationId,
+    applicationId: req.body.applicationId,
   });
   event = await event.save();
 
-  return res.send(event);
+  return res.status(httpStatus.StatusCodes.CREATED).send(event);
 }
 
 // PATCH api/events/:id?applicationId=xxx
 async function updateEvent(req, res) {
-  const application = await Application.findById(req.query.applicationId);
-  if (!application) return res.status(400).send('Invalid application.');
+  const { applicationId, ...rest } = req.body;
+  const application = await Application.findById(applicationId);
+  if (!application)
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      message: 'Invalid application or Application Id not given',
+    });
 
   let event = await Event.findById(req.params.id);
-  if (
-    !event ||
-    event.applicationId.toString() !== req.query.applicationId.toString()
-  )
-    return res.status(404).send('Invalid event.');
+  if (!event || event.applicationId.toString() !== applicationId.toString())
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      message: 'Invalid Event or Event Id not given',
+    });
 
-  event = await Event.findByIdAndUpdate(req.params.id, req.body, {
+  // check if the event with the same name already exists in the application
+  if (req.body.name) {
+    const existingEvent = await Event.findOne({
+      name: req.body.name,
+      applicationId,
+    });
+    if (existingEvent) {
+      return res.status(httpStatus.StatusCodes.CONFLICT).json({
+        error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
+        message: 'Event with the name already exists.',
+      });
+    }
+  }
+
+  event = await Event.findByIdAndUpdate(req.params.id, rest, {
     new: true,
   });
 
-  if (!event)
-    return res.status(404).send('The event with the given ID was not found.');
-
-  return res.send(event);
+  return res.status(httpStatus.StatusCodes.OK).json({ event });
 }
 
 exports.listAllEvents = listAllEvents;

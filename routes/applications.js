@@ -10,22 +10,18 @@ const {
   // eslint-disable-next-line import/no-dynamic-require
 } = require(`../controllers/${dbConfig.dbName}/application`);
 
+const { getAppFilters } = require('../middleware/queryValidation');
+
 const errorHandler = require('../middleware/error');
-// const { validateApp, validateUpdateApp } = require('../middleware/validation');
+const { validateApp, validateUpdateApp } = require('../middleware/validation');
 
 const router = express.Router();
 
-router.use(errorHandler);
-
-router.get('/', listAllApplications);
-router.post('/', createApplication);
-router.patch('/:id', updateApplication);
+router.get('/', getAppFilters, listAllApplications);
+router.post('/', validateApp, createApplication);
+router.patch('/:id', validateUpdateApp, updateApplication);
 router.get('/:id', listApplication);
 
-// Roues for Monggose
-// router.get('/', listAllApplications);
-// router.post('/', validateApp, createApplication);
-// router.patch('/:id', validateUpdateApp, updateApplication);
-// router.get('/:id', listApplication);
+router.use(errorHandler);
 
 module.exports = router;

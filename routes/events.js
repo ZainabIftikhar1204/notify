@@ -16,10 +16,12 @@ const {
   validateUpdateEvent,
 } = require('../middleware/validation');
 
+const { getEventFilters } = require('../middleware/queryValidation');
+
 const router = express.Router();
 router.use(errorHandler);
 
-router.get('/', listAllEvents);
+router.get('/', getEventFilters, listAllEvents);
 router.post('/', validateEvent, createEvent);
 router.patch('/:id', validateUpdateEvent, updateEvent);
 
