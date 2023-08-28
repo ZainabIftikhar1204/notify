@@ -11,9 +11,10 @@ async function listAllApplications(req, res) {
   const startIndex = (page - 1) * limit;
 
   // Get the total count of records
-  const [{ totalDocuments }] = await knex('applications')
+  const { totalDocuments } = await knex('applications')
     .count('* as totalDocuments')
-    .where(filter);
+    .where(filter)
+    .first(); // CHANGED
 
   const totalPages = Math.ceil(totalDocuments / limit);
 
@@ -86,19 +87,21 @@ async function updateApplication(req, res) {
   // Update the application record
   const updatedCount = await knex('applications')
     .where({ id })
-    .update(updatedApplication);
+    .update(updatedApplication)
+    .returning('*');
 
-  if (updatedCount === 0) {
-    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+  console.log(req.body.name, updatedCount);
+  if (updatedCount.length === 0) {
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).send({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
       message: 'The application with the given ID was not found.',
     });
   }
 
   // Fetch the updated application record
-  const application = await knex('applications').where({ id }).first();
+  // const application = await knex('applications').where({ id }).first();
 
-  return res.send(application);
+  return res.status(httpStatus.StatusCodes.OK).send(updatedCount);
 }
 
 async function listApplication(req, res) {
