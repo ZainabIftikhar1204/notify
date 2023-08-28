@@ -11,20 +11,19 @@ const {
   // eslint-disable-next-line import/no-dynamic-require
 } = require(`../controllers/${dbConfig.dbName}/notification`);
 
-const errorHandler = require('../middleware/error');
 const {
   validateNotification,
   validateUpdateNotification,
+  validateMessage,
 } = require('../middleware/validation');
 
 const { getNotificationFilters } = require('../middleware/queryValidation');
 
 const router = express.Router();
-router.use(errorHandler);
 
 router.get('/', getNotificationFilters, listAllNotifications);
 router.post('/', validateNotification, createNotification);
 router.patch('/:id', validateUpdateNotification, updateNotification);
-router.post('/:id/message', previewNotificationMessage);
+router.post('/:id/message', validateMessage, previewNotificationMessage);
 
 module.exports = router;

@@ -113,6 +113,30 @@ const validateUpdateNotification = (req, res, next) => {
   next();
 };
 
+const validateMessage = (req, res, next) => {
+  const recipientSchema = Joi.object({
+    email: Joi.string().email().required(),
+    tags: Joi.object().pattern(Joi.string(), Joi.string()),
+  });
+
+  const previewNotificationSchema = Joi.object({
+    eventId: Joi.string().required(),
+    applicationName: Joi.string().required(),
+    eventName: Joi.string().required(),
+    to: Joi.array().items(recipientSchema).required(),
+  });
+
+  const { error } = previewNotificationSchema.validate(req.body);
+
+  if (error) {
+    return res
+      .status(httpStatus.StatusCodes.BAD_REQUEST)
+      .json({ error: error.details[0].message });
+  }
+
+  next();
+};
+
 module.exports = {
   validateApp,
   validateUpdateApp,
@@ -120,4 +144,5 @@ module.exports = {
   validateUpdateEvent,
   validateNotification,
   validateUpdateNotification,
+  validateMessage,
 };

@@ -1,33 +1,20 @@
 const winston = require('winston');
 
-// const logger = winston.createLogger({
-//   level: process.env.NODE_ENV === 'production' ? 'info' : 'verbose',
-//   format: winston.format.combine(
-//     winston.format.timestamp(),
-//     winston.format.printf(
-//       ({ timestamp, level, message }) =>
-//         `[${timestamp}] [${level}] [${winston
-//           .getFormat()
-//           .transform('traceid')}]: ${message}`,
-//     ),
-//   ),
-//   transports: [
-//     new winston.transports.File({ filename: 'logfile.log' }), // Log to a file
-//     // Add more transports if needed (e.g., log to a file)
-//   ],
-// });
-
+// Create the logger instance
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'verbose',
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.printf(
-      ({ timestamp, level, message }) => `[${timestamp}] [${level}] ${message}`,
-    ),
+    winston.format.printf(({ timestamp, level, message, traceid }) => {
+      if (!traceid) {
+        return `[${timestamp}] [${level}] ${message}`;
+      }
+      return `[${timestamp}] [${level}] [${traceid}]: ${message}`;
+    }),
   ),
   transports: [
     new winston.transports.File({ filename: 'logfile.log' }), // Log to a file
-    // Add more transports if needed (e.g., log to a file)
+    new winston.transports.Console(), // Log to the console
   ],
 });
 

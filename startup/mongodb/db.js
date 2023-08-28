@@ -1,7 +1,6 @@
-/* eslint-disable import/no-extraneous-dependencies */
-const winston = require('winston');
 const mongoose = require('mongoose');
 const config = require('config');
+const logger = require('../logger');
 
 const dbConfig = config.get('database.mongodb');
 
@@ -12,8 +11,8 @@ module.exports = function () {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
-    .then(() => winston.info('Connected to MongoDB...'))
+    .then(() => logger.info('Connected to MongoDB...'))
     .catch((error) => {
-      winston.error('Error connecting to MongoDB:', error);
+      logger.error('Error connecting to MongoDB:', error);
     });
 };

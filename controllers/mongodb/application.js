@@ -62,18 +62,6 @@ async function createApplication(req, res) {
 
 // PATCH /api/application/:id
 async function updateApplication(req, res) {
-  if (req.body.name) {
-    const existingApplication = await Application.findOne({
-      name: req.body.name,
-    });
-    if (existingApplication) {
-      return res.status(httpStatus.StatusCodes.CONFLICT).json({
-        error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
-        message: 'Application with the name already exists.',
-      });
-    }
-  }
-
   const application = await Application.findByIdAndUpdate(
     req.params.id,
     req.body,
@@ -87,6 +75,18 @@ async function updateApplication(req, res) {
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
       message: 'The application with the given ID was not found.',
     });
+
+  if (req.body.name) {
+    const existingApplication = await Application.findOne({
+      name: req.body.name,
+    });
+    if (existingApplication) {
+      return res.status(httpStatus.StatusCodes.CONFLICT).json({
+        error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
+        message: 'Application with the name already exists.',
+      });
+    }
+  }
 
   return res.status(httpStatus.StatusCodes.OK).json({ application });
 }

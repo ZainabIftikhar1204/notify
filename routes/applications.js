@@ -11,8 +11,6 @@ const {
 } = require(`../controllers/${dbConfig.dbName}/application`);
 
 const { getAppFilters } = require('../middleware/queryValidation');
-
-const errorHandler = require('../middleware/error');
 const { validateApp, validateUpdateApp } = require('../middleware/validation');
 
 const router = express.Router();
@@ -22,6 +20,6 @@ router.post('/', validateApp, createApplication);
 router.patch('/:id', validateUpdateApp, updateApplication);
 router.get('/:id', listApplication);
 
-router.use(errorHandler);
+// router.use(errorHandler);
 
 module.exports = router;

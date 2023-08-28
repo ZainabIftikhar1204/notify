@@ -3,9 +3,12 @@ const applications = require('../routes/applications');
 const events = require('../routes/events');
 const notifications = require('../routes/notifications');
 const error = require('../middleware/error');
+const traceIdMiddleware = require('../middleware/traceIdMiddleware'); // Add the path to your middleware
 
 module.exports = function (app) {
   app.use(express.json());
+  app.use(traceIdMiddleware);
+
   app.use('/api/applications', applications);
   app.use('/api/events', events);
   app.use('/api/notifications', notifications);
