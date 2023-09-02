@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint --fix index.js",
     "format": "prettier -w",
-    "test": "jest --runInBand --watchAll --verbose -- test/unit/controllers/postgres/application",
+    "test": "jest --runInBand --watchAll --verbose -- test/unit",
     "migrate": "npx knex migrate:latest --knexfile startup/knexfile.js"
   },
   "keywords": [],
