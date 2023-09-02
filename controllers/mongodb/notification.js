@@ -2,15 +2,15 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const httpStatus = require('http-status-codes');
 const { Event } = require('../../models/event');
-const { Application } = require('../../models/application');
 const { Notification } = require('../../models/notification');
 const { Tag } = require('../../models/tag');
 const { Message } = require('../../models/message');
 
-// GET /api/notificcation?eventId=xxx&appId=xxx
+// GET /api/notificcation?eventId=xxx
 async function listAllNotifications(req, res) {
   let { filter } = req; // Default to empty filter if not specified
   filter = { ...filter, eventId: req.query.eventId };
+
   if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
 
   const event = await Event.findById(req.query.eventId);
@@ -19,22 +19,14 @@ async function listAllNotifications(req, res) {
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
       message: 'No events found.',
     });
-  const application = await Application.findById(req.query.appId);
-  if (
-    !application ||
-    application._id.toString() !== event.applicationId.toString()
-  )
-    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
-      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
-      message: 'No application found.',
-    });
 
   const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit, 10) || 2; // Default limit to 10 if not specified
+  const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 10 if not specified
 
   const startIndex = (page - 1) * limit;
 
   const totalDocuments = await Notification.countDocuments(filter);
+
   const totalPages = Math.ceil(totalDocuments / limit);
   const notifications = await Notification.find(filter)
     .skip(startIndex)
@@ -64,7 +56,8 @@ function parseTemplate(templatebody) {
 
   return matches;
 }
-// POST /api/notification?eventId=xxx&appId=xxx
+
+// POST /api/notification?eventId=xxx
 async function createNotification(req, res) {
   const event = await Event.findById(req.body.eventId);
   if (!event)
@@ -77,6 +70,7 @@ async function createNotification(req, res) {
   const existingNotification = await Notification.findOne({
     name: req.body.name,
     eventId: req.body.eventId,
+    _id: { $ne: req.params.id },
   });
   if (existingNotification)
     return res.status(httpStatus.StatusCodes.CONFLICT).json({
@@ -113,21 +107,10 @@ async function createNotification(req, res) {
   return res.status(httpStatus.StatusCodes.CREATED).send(notification);
 }
 
-// PATCH api/notification/:id?evenId=xxx&appId=xxx
+// PATCH api/notification/:id
 async function updateNotification(req, res) {
-  const event = await Event.findById(req.body.eventId); // Assuming you have the Event model imported
-  if (!event)
-    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
-      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
-      message: 'Invalid Event or Event Id not given',
-    });
-  let notification = await Notification.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    {
-      new: true,
-    },
-  );
+  console.log(req.body);
+  let notification = await Notification.findById(req.params.id);
   if (!notification)
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
@@ -137,7 +120,8 @@ async function updateNotification(req, res) {
     // check if the notification with the same name already exists in the event
     const existingNotification = await Notification.findOne({
       name: req.body.name,
-      eventId: req.body.eventId,
+      eventId: notification.eventId,
+      _id: { $ne: req.params.id },
     });
     if (existingNotification)
       return res.status(httpStatus.StatusCodes.CONFLICT).json({
@@ -145,6 +129,13 @@ async function updateNotification(req, res) {
         message: 'Notification with the name already exists.',
       });
   }
+  notification = await Notification.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+    },
+  );
   if (req.body.templatebody) {
     const tagsArray = parseTemplate(req.body.templatebody);
     tagsArray.forEach(async (tag) => {
@@ -163,14 +154,16 @@ async function updateNotification(req, res) {
     if (req.body.is_deleted) notification.is_deleted = req.body.is_deleted;
     notification = await notification.save();
   }
-  return res.status(httpStatus.StatusCodes.OK).json({ notification });
+  return res.status(httpStatus.StatusCodes.OK).json(notification );
 }
 
 // POST api/notification/:id/message
 async function previewNotificationMessage(req, res) {
-  const { eventId, ...rest } = req.body;
+  const rest  = req.body;
+
   const notification = await Notification.findById(req.params.id);
-  if (!notification || notification.eventId.toString() !== eventId) {
+  
+  if (!notification) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
       message: 'Invalid Notification or Notification Id not given',

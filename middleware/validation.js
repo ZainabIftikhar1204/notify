@@ -5,7 +5,7 @@ const httpStatus = require('http-status-codes');
 
 const validateApp = (req, res, next) => {
   const schema = Joi.object({
-    name: Joi.string().min(3).required(),
+    name: Joi.string().min(3).max(25).required(),
     description: Joi.string().min(5).required(),
     // is_deleted: Joi.boolean().default(false),
   });
@@ -23,7 +23,7 @@ const validateApp = (req, res, next) => {
 
 const validateUpdateApp = (req, res, next) => {
   const schema = Joi.object({
-    name: Joi.string().min(3),
+    name: Joi.string().min(3).max(25),
     description: Joi.string().min(5),
     is_deleted: Joi.boolean(),
     is_active: Joi.boolean(),
@@ -61,10 +61,6 @@ const validateUpdateEvent = (req, res, next) => {
     description: Joi.string().min(5).max(50),
     is_deleted: Joi.boolean(),
     is_active: Joi.boolean(),
-    applicationId:
-      config.get('database.dbName') === 'mongodb'
-        ? Joi.string().required() // For MongoDB
-        : Joi.number().integer().required(), // For PostgreSQL
   }).or('name', 'description', 'is_deleted', 'is_active'); // At least one of these fields is required;
   const { error } = schema.validate(req.body);
   if (error) {
@@ -120,7 +116,6 @@ const validateMessage = (req, res, next) => {
   });
 
   const previewNotificationSchema = Joi.object({
-    eventId: Joi.string().required(),
     applicationName: Joi.string().required(),
     eventName: Joi.string().required(),
     to: Joi.array().items(recipientSchema).required(),

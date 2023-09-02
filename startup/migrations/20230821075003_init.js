@@ -23,5 +23,10 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable('messages');
+  // return knex.schema.dropTable('messages');
+  return knex.schema
+    .alterTable('messages', (table) => {
+      table.dropForeign('notification_id');
+    })
+    .dropTable('messages');
 };

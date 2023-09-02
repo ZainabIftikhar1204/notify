@@ -70,13 +70,22 @@ async function createApplication(req, res) {
 // PATCH /api/application/:id
 async function updateApplication(req, res) {
   const { id } = req.params;
+  console.log(id);
   const updatedApplication = req.body;
+  // Check if the application with the given ID exists
+  const application = await knex('applications').where({ id }).first();
+
+  if (!application) {
+    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      message: 'The application with the given ID was not found.',
+    });
+  }
   if (req.body.name) {
-    const application = await knex('applications')
+    const existingApplication = await knex('applications')
       .where({ name: req.body.name })
       .first();
-
-    if (application) {
+    if (existingApplication) {
       return res.status(httpStatus.StatusCodes.CONFLICT).json({
         error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
         message: 'Application with the name already exists.',
@@ -89,8 +98,6 @@ async function updateApplication(req, res) {
     .where({ id })
     .update(updatedApplication)
     .returning('*');
-
-  console.log(req.body.name, updatedCount);
   if (updatedCount.length === 0) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).send({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
@@ -101,7 +108,7 @@ async function updateApplication(req, res) {
   // Fetch the updated application record
   // const application = await knex('applications').where({ id }).first();
 
-  return res.status(httpStatus.StatusCodes.OK).send(updatedCount);
+  return res.status(httpStatus.StatusCodes.OK).send(updatedCount[0]);
 }
 
 async function listApplication(req, res) {
@@ -116,7 +123,7 @@ async function listApplication(req, res) {
       .send('The application with the given ID was not found.');
   }
 
-  return res.status(httpStatus.StatusCodes.OK).json({ application });
+  return res.status(httpStatus.StatusCodes.OK).json(application);
 }
 
 exports.listAllApplications = listAllApplications;

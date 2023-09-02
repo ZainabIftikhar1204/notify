@@ -7,6 +7,7 @@ const { Event } = require('../../models/event');
 async function listAllEvents(req, res) {
   let { filter } = req; // Default to empty filter if not specified
   filter = { ...filter, applicationId: req.query.applicationId };
+
   if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
   const application = await Application.findById(req.query.applicationId);
   if (!application)
@@ -71,18 +72,12 @@ async function createEvent(req, res) {
   return res.status(httpStatus.StatusCodes.CREATED).send(event);
 }
 
-// PATCH api/events/:id?applicationId=xxx
+// PATCH api/events/:id
 async function updateEvent(req, res) {
-  const { applicationId, ...rest } = req.body;
-  const application = await Application.findById(applicationId);
-  if (!application)
-    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
-      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
-      message: 'Invalid application or Application Id not given',
-    });
+  const rest = req.body;
 
   let event = await Event.findById(req.params.id);
-  if (!event || event.applicationId.toString() !== applicationId.toString())
+  if (!event)
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
       message: 'Invalid Event or Event Id not given',
@@ -92,7 +87,8 @@ async function updateEvent(req, res) {
   if (req.body.name) {
     const existingEvent = await Event.findOne({
       name: req.body.name,
-      applicationId,
+      applicationId: event.applicationId,
+      _id: { $ne: req.params.id },
     });
     if (existingEvent) {
       return res.status(httpStatus.StatusCodes.CONFLICT).json({

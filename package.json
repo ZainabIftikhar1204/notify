@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint --fix index.js",
     "format": "prettier -w",
-    "test": "jest",
+    "test": "jest --runInBand --watchAll --verbose -- test/unit/controllers/postgres/application",
     "migrate": "npx knex migrate:latest --knexfile startup/knexfile.js"
   },
   "keywords": [],
@@ -37,6 +37,7 @@
     "nodemon": "^3.0.1",
     "prettier": "^3.0.1",
     "regex": "^0.1.1",
+    "supertest": "^6.3.3",
     "ts-jest": "^29.1.1"
   },
   "prettier": {

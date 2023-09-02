@@ -6,25 +6,15 @@ const httpStatus = require('http-status-codes');
 const knex = require('../../startup/postgresdb/db');
 
 async function listAllNotifications(req, res) {
-  const { eventId, appId } = req.query;
+  let { filter } = req; // Default to empty filter if not specified
+  filter = { ...filter, event_id: req.query.eventId };
 
   // Fetch the event by ID
-  const event = await knex('events').where('id', eventId).first();
-
+  const event = await knex('events').where('id', req.query.eventId).first();
   if (!event) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
       message: 'No events found.',
-    });
-  }
-
-  // Fetch the application by ID
-  const application = await knex('applications').where('id', appId).first();
-
-  if (!application || application.id !== event.application_id) {
-    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
-      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
-      message: 'No application found.',
     });
   }
 
@@ -35,7 +25,7 @@ async function listAllNotifications(req, res) {
   // Get the total count of notifications associated with the event
   const [{ totalDocuments }] = await knex('notifications')
     .where('is_deleted', false)
-    .where('event_id', eventId)
+    .where(filter)
     .count('* as totalDocuments');
 
   const totalPages = Math.ceil(totalDocuments / limit);
@@ -44,7 +34,7 @@ async function listAllNotifications(req, res) {
   const notifications = await knex('notifications')
     .select('*')
     .where('is_deleted', false)
-    .where('event_id', eventId)
+    .where(filter)
     .offset(startIndex)
     .limit(limit);
 
@@ -163,12 +153,6 @@ async function updateNotification(req, res) {
     }
   }
 
-  // Update the notification fields
-  // const updatedFields = {
-  //   ...notification,
-  //   ...rest,
-  // };
-
   if (req.body.templatebody) {
     const tagsArray = parseTemplate(req.body.templatebody);
     // Convert tags array to JSON string
@@ -186,22 +170,19 @@ async function updateNotification(req, res) {
   const updatedNotification = await knex('notifications')
     .where('id', req.params.id)
     .update(rest, ['*']);
-  return res.status(httpStatus.StatusCodes.OK).json({ updatedNotification });
+  return res.status(httpStatus.StatusCodes.OK).json(updatedNotification[0]);
 }
 
 // POST /api/notification/:id/message
 async function previewNotificationMessage(req, res) {
-  const { eventId, ...rest } = req.body;
+  const rest = req.body;
   const notificationId = req.params.id;
 
   // Fetch the notification by ID
   const notification = await knex('notifications')
     .where('id', notificationId)
     .first();
-  if (
-    !notification ||
-    notification.event_id.toString() !== eventId.toString()
-  ) {
+  if (!notification) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
       message: 'Invalid Notification or Notification Id not given',
@@ -235,7 +216,9 @@ async function previewNotificationMessage(req, res) {
     await knex('messages').insert(message);
   }
 
-  return res.status(httpStatus.StatusCodes.OK).send('Messages Saved in DB');
+  return res
+    .status(httpStatus.StatusCodes.OK)
+    .json({ message: 'Messages Saved in DB' });
 }
 
 exports.listAllNotifications = listAllNotifications;

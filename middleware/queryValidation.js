@@ -58,10 +58,6 @@ const getNotificationFilters = (req, res, next) => {
       config.get('database.dbName') === 'mongodb'
         ? Joi.string().required() // For MongoDB
         : Joi.number().integer().required(), // For PostgreSQL
-    appId:
-      config.get('database.dbName') === 'mongodb'
-        ? Joi.string().required() // For MongoDB
-        : Joi.number().integer().required(), // For PostgreSQL
     sort: Joi.string(),
     page: Joi.number(),
     limit: Joi.number(),
@@ -72,7 +68,7 @@ const getNotificationFilters = (req, res, next) => {
       .status(400)
       .json({ error: validatedData.error.details[0].message });
   }
-  const { page, limit, sort, appId, eventId, ...filter } = validatedData.value; // Destructure to exclude page, limit, and sort
+  const { page, limit, sort, eventId, ...filter } = validatedData.value; // Destructure to exclude page, limit, and sort
   req.filter = filter;
   next();
 };

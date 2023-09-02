@@ -101,40 +101,11 @@ async function createEvent(req, res) {
 }
 
 async function updateEvent(req, res) {
-  const { applicationId, ...rest } = req.body;
-
-  // Check if the application with the given ID exists
-  const application = await knex('applications')
-    .where('id', applicationId)
-    .first();
-
-  if (!application) {
-    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
-      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
-      message: 'Invalid application or Application Id not given',
-    });
-  }
-
-  if (req.body.name) {
-    // check if event with same name already exists for the application
-    const event = await knex('events')
-      .where({ name: req.body.name })
-      .where({ application_id: applicationId })
-      .first();
-    if (event) {
-      return res.status(httpStatus.StatusCodes.CONFLICT).json({
-        error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
-        message: 'Event with the name already exists.',
-      });
-    }
-  }
+  const rest = req.body;
   const eventId = req.params.id;
 
   // Fetch the event by ID and application association
-  const event = await knex('events')
-    .where('id', eventId)
-    .where('application_id', applicationId)
-    .first();
+  let event = await knex('events').where('id', eventId).first();
 
   if (!event) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
@@ -142,16 +113,24 @@ async function updateEvent(req, res) {
       message: 'Invalid Event or Event Id not given',
     });
   }
+  if (req.body.name) {
+    // check if event with same name already exists for the application
+    event = await knex('events').where({ name: req.body.name }).first();
+    if (event) {
+      return res.status(httpStatus.StatusCodes.CONFLICT).json({
+        error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
+        message: 'Event with the name already exists.',
+      });
+    }
+  }
 
   const updatedEvent = rest;
 
   // Update the event record
   const [updatedCount] = await knex('events')
     .where('id', eventId)
-    .where('application_id', applicationId)
     .update(updatedEvent)
     .returning('*');
-
   if (updatedCount === 0) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
@@ -159,7 +138,7 @@ async function updateEvent(req, res) {
     });
   }
 
-  return res.status(httpStatus.StatusCodes.OK).json({ updateEvent });
+  return res.status(httpStatus.StatusCodes.OK).json(updatedCount);
 }
 
 exports.listAllEvents = listAllEvents;
