@@ -70,7 +70,6 @@ async function createApplication(req, res) {
 // PATCH /api/application/:id
 async function updateApplication(req, res) {
   const { id } = req.params;
-  console.log(id);
   const updatedApplication = req.body;
   // Check if the application with the given ID exists
   const application = await knex('applications').where({ id }).first();

@@ -97,7 +97,6 @@ describe('getNotificationFilters', () => {
       name: 'Test Notification',
       description: 'This is a test notification',
       eventId: 'mockId',
-      appId: 'mockId',
       sort: 'asc',
       page: 1,
       limit: 10,

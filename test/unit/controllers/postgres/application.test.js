@@ -233,7 +233,7 @@ describe('updateApplication', () => {
     await updateApplication(req, res);
 
     // Parse the response data
-    const responseData = res._getData();
+    const responseData = JSON.parse(res._getData());
 
     // Assertions
     expect(res.statusCode).toBe(404);
@@ -300,20 +300,40 @@ describe('updateApplication', () => {
       },
     });
     const res = httpMocks.createResponse();
+    // Mock for existingApplication
+    knex.mockReturnValueOnce({
+      where: jest.fn().mockReturnValueOnce({
+        first: jest.fn().mockResolvedValue({
+          // Mocked data for an existing application
+          id: 1,
+          name: 'Existing Application',
+          description: 'This is an existing application',
+          is_deleted: false,
+          is_active: true,
+        }),
+      }),
+    });
 
     // Mock the Knex query methods
     knex.mockReturnValue({
       where: jest.fn().mockReturnValue({
         update: jest.fn().mockReturnValue({
-          returning: jest.fn().mockReturnValue({
-            id: 1,
-            name: 'Test Application',
-            description: 'This is a test application',
-            is_deleted: false,
-            is_active: true,
-          }),
-        }), // Mock update query
-        first: jest.fn().mockResolvedValue(null), // Mock select query
+          returning: jest.fn().mockReturnValue([
+            {
+              id: 1,
+              name: 'Test Application is updated',
+              description: 'This is a test application',
+              is_deleted: false,
+              is_active: true,
+            },
+          ]),
+        }),
+      }),
+    });
+    // Mock for application
+    knex.mockReturnValueOnce({
+      where: jest.fn().mockReturnValueOnce({
+        first: jest.fn().mockResolvedValue(null),
       }),
     });
 
@@ -327,7 +347,7 @@ describe('updateApplication', () => {
     expect(res._isEndCalled()).toBeTruthy();
     expect(responseData).toEqual({
       id: 1,
-      name: 'Test Application',
+      name: 'Test Application is updated',
       description: 'This is a test application',
       is_deleted: false,
       is_active: true,
