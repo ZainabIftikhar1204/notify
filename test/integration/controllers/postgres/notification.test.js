@@ -28,14 +28,47 @@ describe('/api/notifications', () => {
   describe('GET /', () => {
     beforeEach(async () => {
       await knex('applications').insert([
-        { name: 'app1', description: 'app1 desc' },
-        { name: 'app2', description: 'app2 desc' },
-        { name: 'app3', description: 'app3 desc' },
+        {
+          name: 'app1',
+          description: 'app1 desc',
+          is_active: true,
+          is_deleted: false,
+        },
+        {
+          name: 'app2',
+          description: 'app2 desc',
+          is_active: true,
+          is_deleted: false,
+        },
+        {
+          name: 'app3',
+          description: 'app3 desc',
+          is_active: true,
+          is_deleted: false,
+        },
       ]);
       await knex('events').insert([
-        { name: 'event1', application_id: 1, description: 'event1 desc' },
-        { name: 'event2', application_id: 1, description: 'event2 desc' },
-        { name: 'event3', application_id: 2, description: 'event3 desc' },
+        {
+          name: 'event1',
+          application_id: 1,
+          description: 'event1 desc',
+          is_active: true,
+          is_deleted: false,
+        },
+        {
+          name: 'event2',
+          application_id: 1,
+          description: 'event2 desc',
+          is_active: true,
+          is_deleted: false,
+        },
+        {
+          name: 'event3',
+          application_id: 2,
+          description: 'event3 desc',
+          is_active: true,
+          is_deleted: false,
+        },
       ]);
       await knex('notifications').insert([
         {
@@ -43,18 +76,24 @@ describe('/api/notifications', () => {
           event_id: 1,
           description: 'notification1 desc',
           templatebody: 'notification1 template {{name}}',
+          is_active: true,
+          is_deleted: false,
         },
         {
           name: 'notification2',
           event_id: 1,
           description: 'notification2 desc',
           templatebody: 'notification1 template {{name}}',
+          is_active: true,
+          is_deleted: false,
         },
         {
           name: 'notification3',
           event_id: 2,
           description: 'notification3 desc',
           templatebody: 'notification1 template {{name}}',
+          is_active: true,
+          is_deleted: false,
         },
       ]);
     });
@@ -77,7 +116,37 @@ describe('/api/notifications', () => {
         ),
       ).toBeTruthy();
     });
-
+    it('should test pagination', async () => {
+      const response = await request(server)
+        .get('/api/notifications')
+        .query({ eventId: 1, page: 1, limit: 1 });
+      const { notifications } = response.body;
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(notifications.length).toBe(1);
+      expect(
+        notifications.some(
+          (notification) => notification.name === 'notification1',
+        ),
+      ).toBeTruthy();
+    });
+    it('should test sorting', async () => {
+      const response = await request(server)
+        .get('/api/notifications')
+        .query({ eventId: 1, sort: 'desc', sortby: 'name' });
+      const { notifications } = response.body;
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(notifications.length).toBe(2);
+      expect(notifications[0].name).toBe('notification2');
+    });
+    it('should test filtering', async () => {
+      const response = await request(server)
+        .get('/api/notifications')
+        .query({ eventId: 1, name: 'notification1' });
+      const { notifications } = response.body;
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(notifications.length).toBe(1);
+      expect(notifications[0].name).toBe('notification1');
+    });
     it('should return 404 if no notifications are found', async () => {
       const response = await request(server).get('/api/notifications').query({
         eventId: 101,

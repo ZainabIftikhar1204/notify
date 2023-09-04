@@ -296,8 +296,32 @@ describe('listAllApplications', () => {
   });
 
   it('should return 404 if no applications are found', async () => {
-    // ... (similar to the previous test case)
-  });
+    // Prepare a mock request and response
+    const req = httpMocks.createRequest({
+      method: 'GET',
+      url: '/api/applications',
+      query: {
+        page: 1,
+        limit: 3,
+      },
+      filter: {},
+    });
+    const res = httpMocks.createResponse();
 
-  // Add more test cases as needed
+    const queryMock = {
+      skip: jest.fn().mockReturnValue({
+        limit: jest.fn().mockReturnValue([]),
+      }),
+    };
+    // Mock Application.countDocuments and Application.find to return mock data
+    Application.countDocuments = jest.fn().mockResolvedValue(0);
+    Application.find = jest.fn().mockReturnValue(queryMock);
+
+    // Call the listAllApplications function
+    await listAllApplications(req, res);
+
+    // Assertions
+    expect(res.statusCode).toBe(404);
+    expect(res._isEndCalled()).toBeTruthy();
+  });
 });

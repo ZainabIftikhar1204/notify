@@ -9,7 +9,7 @@
     "test_postgres": "jest --runInBand  --verbose -- test/unit/controllers/postgres && jest --runInBand --verbose -- test/integration/controllers/postgres",
     "test_mongo": "jest --runInBand  --verbose -- test/unit/controllers/mongodb && jest --runInBand --verbose -- test/integration/controllers/mongodb",
     "test_middleware": "jest --runInBand --verbose -- test/unit/middleware && jest --runInBand  --verbose -- test/integration/middleware",
-    "test": "jest --runInBand --verbose -- test/integration/controllers/postgres/event",
+    "test": "jest --runInBand --verbose -- test/integration/controllers/postgres/notification",
     "migrate": "npx knex migrate:latest --knexfile startup/knexfile.js"
   },
   "keywords": [],

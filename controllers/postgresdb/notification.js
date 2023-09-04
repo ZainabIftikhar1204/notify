@@ -6,11 +6,18 @@ const httpStatus = require('http-status-codes');
 const knex = require('../../startup/postgresdb/db');
 
 async function listAllNotifications(req, res) {
-  let { filter } = req; // Default to empty filter if not specified
-  filter = { ...filter, event_id: req.query.eventId };
+  const { eventId: event_id, ...filter } = req.filter; // Default to empty filter if not specified
+  const { sort, sortby } = req.query;
+  const { page, limit } = req.query; // Destructure page and limit from req.query
+  // Convert page and limit to integers with default values
+  const currentPage = parseInt(page, 10) || 1;
+  const pageSize = parseInt(limit, 10) || 3;
+
+  // Calculate startIndex for pagination
+  const startIndex = (currentPage - 1) * pageSize;
 
   // Fetch the event by ID
-  const event = await knex('events').where('id', req.query.eventId).first();
+  const event = await knex('events').where('id', event_id).first();
   if (!event) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
@@ -18,30 +25,41 @@ async function listAllNotifications(req, res) {
     });
   }
 
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 2;
-  const startIndex = (page - 1) * limit;
-
-  // Get the total count of notifications associated with the event
-  const [{ totalDocuments }] = await knex('notifications')
-    .where('is_deleted', false)
+  // Build a query for getting the total count of notifications associated with the event
+  const totalDocumentsQuery = knex('notifications')
+    .where('event_id', event_id)
     .where(filter)
-    .count('* as totalDocuments');
+    .where('is_deleted', false)
+    .count('* as totalDocuments')
+    .first();
 
-  const totalPages = Math.ceil(totalDocuments / limit);
+  // Fetch the total count
+  const { totalDocuments } = await totalDocumentsQuery;
+
+  const totalPages = Math.ceil(totalDocuments / pageSize);
+
+  // Build the query for fetching notifications associated with the event
+  const notificationsQuery = knex('notifications')
+    .select('*')
+    .where('event_id', event_id)
+    .where(filter)
+    .where('is_deleted', false)
+    .offset(startIndex)
+    .limit(pageSize);
+
+  // Apply sorting based on the 'sort' and 'sortby' parameters
+  if (sort && sortby) {
+    const sortOrder = sort === 'asc' ? 'asc' : 'desc';
+    notificationsQuery.orderBy(sortby, sortOrder);
+  }
 
   // Fetch notifications associated with the event
-  const notifications = await knex('notifications')
-    .select('*')
-    .where('is_deleted', false)
-    .where(filter)
-    .offset(startIndex)
-    .limit(limit);
+  const notifications = await notificationsQuery;
 
   const paginationInfo = {
-    currentPage: page,
+    currentPage,
     totalPages,
-    pageSize: limit,
+    pageSize,
     totalCount: totalDocuments,
   };
 

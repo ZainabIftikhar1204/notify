@@ -27,6 +27,8 @@ describe('/api/notifications', () => {
     const application = await Application.collection.insertOne({
       name: 'app1',
       description: 'app1 desc',
+      is_active: true,
+      is_deleted: false,
     });
     const applicationId = application.insertedId;
 
@@ -34,6 +36,8 @@ describe('/api/notifications', () => {
       name: 'event1',
       description: 'event1 desc',
       applicationId,
+      is_active: true,
+      is_deleted: false,
     });
     eventId = event.insertedId;
 
@@ -42,16 +46,22 @@ describe('/api/notifications', () => {
         name: 'notification1',
         description: 'notification1 desc',
         eventId,
+        is_active: true,
+        is_deleted: false,
       },
       {
         name: 'notification2',
         description: 'notification2 desc',
         eventId,
+        is_active: true,
+        is_deleted: false,
       },
       {
         name: 'notification3',
         description: 'notification3 desc',
         eventId,
+        is_active: true,
+        is_deleted: false,
       },
     ];
     await Notification.collection.insertMany(notificationsData);
@@ -107,6 +117,17 @@ describe('/api/notifications', () => {
       const { notifications } = response.body;
       expect(response.status).toBe(200);
       expect(notifications.length).toBe(3);
+    });
+    it('should sort by name', async () => {
+      const response = await request(server).get(
+        `/api/notifications/?eventId=${eventId}&sort=desc&sortby=name`,
+      );
+      const { notifications } = response.body;
+      expect(response.status).toBe(200);
+      expect(notifications.length).toBe(3);
+      expect(notifications[0].name).toBe('notification3');
+      expect(notifications[1].name).toBe('notification2');
+      expect(notifications[2].name).toBe('notification1');
     });
 
     it('should return 404 if event with the given id is not found', async () => {

@@ -7,9 +7,10 @@ const { Tag } = require('../../models/tag');
 const { Message } = require('../../models/message');
 
 // GET /api/notificcation?eventId=xxx
+// GET /api/notifications?eventId=xxx
 async function listAllNotifications(req, res) {
-  let { filter } = req; // Default to empty filter if not specified
-  filter = { ...filter, eventId: req.query.eventId };
+  const { filter } = req; // Default to empty filter if not specified
+  const { sort, sortby } = req.query;
 
   if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
 
@@ -25,12 +26,19 @@ async function listAllNotifications(req, res) {
 
   const startIndex = (page - 1) * limit;
 
+  const query = Notification.find(filter).skip(startIndex).limit(limit);
+
+  // Apply sorting based on sort and sortby query parameters
+  if (sortby === 'name' || sortby === 'is_active') {
+    const sortOrder = sort === 'desc' ? -1 : 1;
+    query.sort({ [sortby]: sortOrder });
+  }
+
   const totalDocuments = await Notification.countDocuments(filter);
 
   const totalPages = Math.ceil(totalDocuments / limit);
-  const notifications = await Notification.find(filter)
-    .skip(startIndex)
-    .limit(limit);
+  const notifications = await query;
+
   const paginationInfo = {
     currentPage: page,
     totalPages,

@@ -14,11 +14,11 @@ jest.mock('config', () => ({
 describe('getAppFilters', () => {
   it('should call next if validation passes', async () => {
     const validQuery = {
-      is_deleted: true,
       is_active: false,
       name: 'Test App',
       description: 'This is a test app',
       sort: 'asc',
+      sortby: 'name',
       page: 1,
       limit: 10,
     };
@@ -39,7 +39,7 @@ describe('getAppFilters', () => {
 
     // Check if the req.filter object is populated correctly
     expect(req.filter).toEqual({
-      is_deleted: true,
+      is_deleted: false,
       is_active: false,
       name: 'Test App',
       description: 'This is a test app',
@@ -51,12 +51,12 @@ describe('getEventFilters', () => {
   it('should call next if validation passes', async () => {
     // Create a valid query object based on your schema
     const validQuery = {
-      is_deleted: false,
       is_active: true,
       name: 'Test Event',
       description: 'This is a test event',
       applicationId: 'mockId',
       sort: 'asc',
+      sortby: 'name',
       page: 1,
       limit: 10,
     };
@@ -84,6 +84,7 @@ describe('getEventFilters', () => {
       is_active: true,
       name: 'Test Event',
       description: 'This is a test event',
+      applicationId: 'mockId',
     });
   });
 });
@@ -92,7 +93,6 @@ describe('getNotificationFilters', () => {
   it('should call next if validation passes', async () => {
     // Create a valid query object based on your schema
     const validQuery = {
-      is_deleted: false,
       is_active: true,
       name: 'Test Notification',
       description: 'This is a test notification',
@@ -125,6 +125,7 @@ describe('getNotificationFilters', () => {
       is_active: true,
       name: 'Test Notification',
       description: 'This is a test notification',
+      eventId: 'mockId',
     });
   });
 });

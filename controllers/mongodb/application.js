@@ -23,7 +23,7 @@ async function listAllApplications(req, res) {
   const totalDocuments = await Application.countDocuments(filter);
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const applications = await query.exec();
+  const applications = await query;
 
   const paginationInfo = {
     currentPage: page,
