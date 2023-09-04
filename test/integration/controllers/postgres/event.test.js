@@ -33,9 +33,24 @@ describe('/api/events', () => {
         { name: 'app3', description: 'app3 desc' },
       ]);
       await knex('events').insert([
-        { name: 'event1', application_id: 1, description: 'event1 desc' },
-        { name: 'event2', application_id: 1, description: 'event2 desc' },
-        { name: 'event3', application_id: 2, description: 'event3 desc' },
+        {
+          name: 'event1',
+          application_id: 1,
+          description: 'event1 desc',
+          is_active: true,
+        },
+        {
+          name: 'event2',
+          application_id: 1,
+          description: 'event2 desc',
+          is_active: false,
+        },
+        {
+          name: 'event3',
+          application_id: 2,
+          description: 'event3 desc',
+          is_active: true,
+        },
       ]);
     });
 
@@ -48,6 +63,38 @@ describe('/api/events', () => {
       expect(events.length).toBe(2);
       expect(events.some((event) => event.name === 'event1')).toBeTruthy();
       expect(events.some((event) => event.name === 'event2')).toBeTruthy();
+    });
+    it('should return all events with pagination', async () => {
+      const response = await request(server)
+        .get('/api/events')
+        .query({ applicationId: 1, page: 1, limit: 1 });
+      const { events, pagination } = response.body;
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(events.length).toBe(1);
+      expect(events.some((event) => event.name === 'event1')).toBeTruthy();
+      expect(pagination.currentPage).toBe(1);
+      expect(pagination.totalPages).toBe(2);
+      expect(pagination.pageSize).toBe(1);
+      expect(pagination.totalCount).toBe('2');
+    });
+    it('should return all events with sorting', async () => {
+      const response = await request(server)
+        .get('/api/events')
+        .query({ applicationId: 1, sort: 'desc', sortby: 'name' });
+      const { events } = response.body;
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(events.length).toBe(2);
+      expect(events[0].name).toBe('event2');
+      expect(events[1].name).toBe('event1');
+    });
+    it('should return all events with filtering', async () => {
+      const response = await request(server)
+        .get('/api/events')
+        .query({ applicationId: 1, is_active: true });
+      const { events } = response.body;
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(events.length).toBe(1);
+      expect(events.some((event) => event.name === 'event1')).toBeTruthy();
     });
 
     it('should return 404 if no events are found', async () => {

@@ -5,39 +5,47 @@ const knex = require('../../startup/postgresdb/db');
 // GET api/applications
 async function listAllApplications(req, res) {
   const { filter } = req; // Default to empty filter if not specified
-  if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
+  const { sort, sortby } = req.query;
+
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 3;
   const startIndex = (page - 1) * limit;
 
-  // Get the total count of records
-  const { totalDocuments } = await knex('applications')
-    .count('* as totalDocuments')
-    .where(filter)
-    .first(); // CHANGED
-
-  const totalPages = Math.ceil(totalDocuments / limit);
-
-  // Retrieve paginated applications
-  const applications = await knex('applications')
+  const query = knex('applications')
     .select('*')
     .where(filter)
     .offset(startIndex)
     .limit(limit);
 
+  // Apply sorting based on sort and sortby query parameters
+  if (sortby === 'name' || sortby === 'is_active') {
+    const sortOrder = sort === 'desc' ? 'desc' : 'asc';
+    query.orderBy(sortby, sortOrder);
+  }
+
+  const totalDocumentsQuery = knex('applications')
+    .count('* as totalDocuments')
+    .where(filter)
+    .first();
+
+  const totalDocuments = await totalDocumentsQuery;
+
+  const totalPages = Math.ceil(totalDocuments.totalDocuments / limit);
+  const applications = await query;
+
   const paginationInfo = {
     currentPage: page,
     totalPages,
     pageSize: limit,
-    totalCount: totalDocuments,
+    totalCount: totalDocuments.totalDocuments,
   };
+
   if (applications.length === 0) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
       message: 'No applications found.',
     });
   }
-
   return res
     .status(httpStatus.StatusCodes.OK)
     .json({ applications, pagination: paginationInfo });

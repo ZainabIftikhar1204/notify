@@ -221,7 +221,6 @@ describe('validateUpdateNotification', () => {
         name: 'Test Notification',
         description: 'This is a test notification',
         templatebody: 'Long enough template body',
-        eventId: 'mockId',
       },
     });
     config.get.mockReturnValue('mongodb');

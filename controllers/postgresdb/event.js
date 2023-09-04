@@ -3,8 +3,9 @@ const httpStatus = require('http-status-codes');
 const knex = require('../../startup/postgresdb/db');
 
 async function listAllEvents(req, res) {
-  const { applicationId } = req.query;
-  const { filter } = req; // Default to empty filter if not specified
+  // const { applicationId } = req.query;
+  const { applicationId, ...filter } = req.filter; // Default to empty filter if not specified
+  const { sort, sortby } = req.query;
   const { page, limit } = req.query; // Destructure page and limit from req.query
 
   // Convert page and limit to integers with default values
@@ -38,13 +39,22 @@ async function listAllEvents(req, res) {
 
   const totalPages = Math.ceil(totalDocuments / pageSize);
 
-  // Fetch events associated with the application
-  const events = await knex('events')
+  // Build the query for fetching events associated with the application
+  const eventsQuery = knex('events')
     .select('*')
     .where('application_id', applicationId)
     .where(filter)
     .offset(startIndex)
     .limit(pageSize);
+
+  // Apply sorting based on the 'sort' and 'sortby' parameters
+  if (sort && sortby) {
+    const sortOrder = sort === 'asc' ? 'asc' : 'desc';
+    eventsQuery.orderBy(sortby, sortOrder);
+  }
+
+  // Fetch events associated with the application
+  const events = await eventsQuery;
 
   const paginationInfo = {
     currentPage,

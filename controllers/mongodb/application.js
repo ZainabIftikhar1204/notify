@@ -5,17 +5,25 @@ const { Application } = require('../../models/application');
 // GET api/applications
 async function listAllApplications(req, res) {
   const { filter } = req; // Default to empty filter if not specified
-  if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
-  const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 10 if not specified
+  const { sort, sortby } = req.query;
 
+  if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
+
+  const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
+  const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 3 if not specified
   const startIndex = (page - 1) * limit;
+
+  const query = Application.find(filter).skip(startIndex).limit(limit);
+  // Apply sorting based on sort and sortby query parameters
+  if (sortby === 'name' || sortby === 'is_active') {
+    const sortOrder = sort === 'desc' ? -1 : 1;
+    query.sort({ [sortby]: sortOrder });
+  }
+
   const totalDocuments = await Application.countDocuments(filter);
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const applications = await Application.find(filter)
-    .skip(startIndex)
-    .limit(limit);
+  const applications = await query.exec();
 
   const paginationInfo = {
     currentPage: page,

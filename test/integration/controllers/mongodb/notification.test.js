@@ -1,9 +1,12 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable no-shadow */
 const request = require('supertest');
 const httpStatus = require('http-status-codes');
+const mongoose = require('mongoose');
 const { Application } = require('../../../../models/application');
 const { Event } = require('../../../../models/event');
 const { Notification } = require('../../../../models/notification');
-const mongoose = require('mongoose');
 const { Message } = require('../../../../models/message');
 
 let server;
@@ -79,6 +82,32 @@ describe('/api/notifications', () => {
         notifications.some((n) => n.name === 'notification3'),
       ).toBeTruthy();
     });
+    it('should test the pagination', async () => {
+      const response = await request(server).get(
+        `/api/notifications/?eventId=${eventId}&page=1&limit=1`,
+      );
+      const { notifications } = response.body;
+      expect(response.status).toBe(200);
+      expect(notifications.length).toBe(1);
+      expect(notifications[0].name).toBe('notification1');
+    });
+    it('should test filter by name complete', async () => {
+      const response = await request(server).get(
+        `/api/notifications/?eventId=${eventId}&name=notification1`,
+      );
+      const { notifications } = response.body;
+      expect(response.status).toBe(200);
+      expect(notifications.length).toBe(1);
+      expect(notifications[0].name).toBe('notification1');
+    });
+    it('should test filter by name incomplete', async () => {
+      const response = await request(server).get(
+        `/api/notifications/?eventId=${eventId}&name=notification`,
+      );
+      const { notifications } = response.body;
+      expect(response.status).toBe(200);
+      expect(notifications.length).toBe(3);
+    });
 
     it('should return 404 if event with the given id is not found', async () => {
       const response = await request(server).get(
@@ -109,12 +138,12 @@ describe('/api/notifications', () => {
     let testEvent;
     let notificationData;
     it('should create a new notification', async () => {
-      //Create an application
+      // Create an application
       let application = new Application({
         name: 'sample Application',
         description: 'Test Application Description',
       });
-      application=await application.save();
+      application = await application.save();
       // Create a test event
       testEvent = new Event({
         name: 'Test Event',
@@ -153,7 +182,7 @@ describe('/api/notifications', () => {
         name: 'sample Application',
         description: 'Test Application Description',
       });
-      application=await application.save();
+      application = await application.save();
       // Create a test event
       testEvent = new Event({
         name: 'Test Event',
@@ -201,37 +230,38 @@ describe('/api/notifications', () => {
       // Add more assertions for the error response as needed
     });
   });
-  describe("PATCH api/notifications/:id", () => {
+  describe('PATCH api/notifications/:id', () => {
     let testNotification;
     let notificationData;
-    it("should update the notification", async () => {
-      //Create an application
+    let testEvent;
+    it('should update the notification', async () => {
+      // Create an application
       let application = new Application({
-        name: "Application 4",
-        description: "Test Application Description",
+        name: 'Application 4',
+        description: 'Test Application Description',
       });
       application = await application.save();
       // Create a test event
       testEvent = new Event({
-        name: "Test Event",
-        description: "Test Event Description",
+        name: 'Test Event',
+        description: 'Test Event Description',
         applicationId: application._id.toString(),
       });
       await testEvent.save();
 
       // Create a test notification
       testNotification = new Notification({
-        name: "Test Notification",
-        description: "Test Notification Description",
-        templatebody: "Test Notification body with {{tag}}",
+        name: 'Test Notification',
+        description: 'Test Notification Description',
+        templatebody: 'Test Notification body with {{tag}}',
         eventId: testEvent._id.toString(), // Convert ObjectId to string
       });
       await testNotification.save();
 
       notificationData = {
-        name: "Updated Notification4",
-        description: "Updated Notification Description",
-        templatebody: "Updated Notification body with {{tag}}",
+        name: 'Updated Notification4',
+        description: 'Updated Notification Description',
+        templatebody: 'Updated Notification body with {{tag}}',
       };
 
       const response = await request(server)
@@ -239,23 +269,23 @@ describe('/api/notifications', () => {
         .send(notificationData);
 
       expect(response.status).toEqual(httpStatus.StatusCodes.OK);
-      expect(response.body).toHaveProperty("name", notificationData.name);
+      expect(response.body).toHaveProperty('name', notificationData.name);
       expect(response.body).toHaveProperty(
-        "description",
-        notificationData.description
+        'description',
+        notificationData.description,
       );
       expect(response.body).toHaveProperty(
-        "templatebody",
-        notificationData.templatebody
+        'templatebody',
+        notificationData.templatebody,
       );
       // Add more assertions for other properties as needed
     });
 
-    it("should return a not found error if the notification does not exist", async () => {
+    it('should return a not found error if the notification does not exist', async () => {
       const notificationData = {
-        name: "Updated Notification",
-        description: "Updated Notification Description",
-        templatebody: "Updated Notification body with {{tag}}",
+        name: 'Updated Notification',
+        description: 'Updated Notification Description',
+        templatebody: 'Updated Notification body with {{tag}}',
       };
 
       const response = await request(server)
@@ -266,43 +296,43 @@ describe('/api/notifications', () => {
       // Add more assertions for the error response as needed
     });
 
-    it("should return conflict error if the notification name already exists", async () => {
-      //Create an application
+    it('should return conflict error if the notification name already exists', async () => {
+      // Create an application
       let application = new Application({
-        name: "Application 4",
-        description: "Test Application Description",
+        name: 'Application 4',
+        description: 'Test Application Description',
       });
       application = await application.save();
       // Create a test event
       testEvent = new Event({
-        name: "Test Event",
-        description: "Test Event Description",
+        name: 'Test Event',
+        description: 'Test Event Description',
         applicationId: application._id.toString(),
       });
       await testEvent.save();
 
       // Create a test notification
       testNotification = new Notification({
-        name: "Test Notification",
-        description: "Test Notification Description",
-        templatebody: "Test Notification body with {{tag}}",
+        name: 'Test Notification',
+        description: 'Test Notification Description',
+        templatebody: 'Test Notification body with {{tag}}',
         eventId: testEvent._id.toString(), // Convert ObjectId to string
       });
       await testNotification.save();
 
       // Create an existing notification
       const existingNotification = new Notification({
-        name: "Existing Notification",
-        description: "Existing Notification Description",
-        templatebody: "Existing body with {{tag}}",
+        name: 'Existing Notification',
+        description: 'Existing Notification Description',
+        templatebody: 'Existing body with {{tag}}',
         eventId: testEvent._id,
       });
       await existingNotification.save();
 
       const notificationData = {
-        name: "Existing Notification", // Same name as existing notification
-        description: "New Notification Description",
-        templatebody: "Notification body with {{tag}}",
+        name: 'Existing Notification', // Same name as existing notification
+        description: 'New Notification Description',
+        templatebody: 'Notification body with {{tag}}',
       };
 
       const response = await request(server)
@@ -311,18 +341,16 @@ describe('/api/notifications', () => {
 
       expect(response.status).toEqual(httpStatus.StatusCodes.CONFLICT);
       // Add more assertions for the error response as needed
-    })
-
-   
+    });
   });
   describe('Notification API - previewNotificationMessage', () => {
     let testNotificationId;
     let eventId;
-  
-    beforeAll(async () => {
-      server; // Start the server
-    });
-  
+
+    // beforeAll(async () => {
+    //   server; // Start the server
+    // });
+
     afterAll(async () => {
       await Promise.all([
         Message.deleteMany({}),
@@ -330,7 +358,7 @@ describe('/api/notifications', () => {
         server.close(),
       ]);
     });
-  
+
     beforeEach(async () => {
       // Create a test notification
       const testNotification = new Notification({
@@ -342,16 +370,16 @@ describe('/api/notifications', () => {
       });
       const savedNotification = await testNotification.save();
       testNotificationId = savedNotification._id;
-  
+
       // Set eventId for comparison
       eventId = savedNotification.eventId.toString();
     });
-  
+
     afterEach(async () => {
       await Message.deleteMany({});
       await Notification.deleteMany({});
     });
-  
+
     it('should preview and save messages for recipients', async () => {
       const mockRecipients = [
         {
@@ -363,40 +391,40 @@ describe('/api/notifications', () => {
           tags: { tag: 'TagValue2' },
         },
       ];
-  
+
       const mockRequestBody = {
         applicationName: 'Test Application',
         eventName: 'Test Event',
         to: mockRecipients,
       };
-     
+
       const response = await request(server)
         .post(`/api/notifications/${testNotificationId}/message`)
         .send(mockRequestBody);
 
-
-  
       expect(response.status).toBe(httpStatus.StatusCodes.OK);
       expect(response.text).toBe('Messages Saved in DB');
-  
+
       // Check if messages are saved in the database
       const savedMessages = await Message.find({});
       expect(savedMessages).toHaveLength(mockRecipients.length);
-  
+
       // Assert message content
       savedMessages.forEach((message, index) => {
         expect(message.email).toBe(mockRecipients[index].email);
         const expectedBody = `${mockRequestBody.applicationName}\n${mockRequestBody.eventName}\nTest Notification\nNotification body with ${mockRecipients[index].tags.tag}`;
         expect(message.body).toBe(expectedBody);
-        expect(message.notificationId.toString()).toBe(testNotificationId.toString());
+        expect(message.notificationId.toString()).toBe(
+          testNotificationId.toString(),
+        );
       });
     });
-  
+
     it('should return not found error if notification id is invalid', async () => {
       const mockRequestBody = {
         applicationName: 'Test Application',
         eventName: 'Test Event',
-        to:[
+        to: [
           {
             email: 'recipient1@example.com',
             tags: { tag: 'TagValue1' },
@@ -405,16 +433,16 @@ describe('/api/notifications', () => {
             email: 'recipient2@example.com',
             tags: { tag: 'TagValue2' },
           },
-        ]
+        ],
       };
-  
+
       const response = await request(server)
         .post('/api/notifications/6123456789abcdef01234567/message')
         .send(mockRequestBody);
       expect(response.status).toBe(httpStatus.StatusCodes.NOT_FOUND);
       // Add more assertions for the error response as needed
     });
-  
+
     // Add more test cases as needed
   });
 });

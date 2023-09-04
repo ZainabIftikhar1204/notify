@@ -102,14 +102,12 @@ async function createNotification(req, res) {
     }
   });
 
-  // console.log(tagsArray);
   notification = await notification.save();
   return res.status(httpStatus.StatusCodes.CREATED).send(notification);
 }
 
 // PATCH api/notification/:id
 async function updateNotification(req, res) {
-  console.log(req.body);
   let notification = await Notification.findById(req.params.id);
   if (!notification)
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
@@ -129,13 +127,9 @@ async function updateNotification(req, res) {
         message: 'Notification with the name already exists.',
       });
   }
-  notification = await Notification.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    {
-      new: true,
-    },
-  );
+  notification = await Notification.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
   if (req.body.templatebody) {
     const tagsArray = parseTemplate(req.body.templatebody);
     tagsArray.forEach(async (tag) => {
@@ -154,15 +148,15 @@ async function updateNotification(req, res) {
     if (req.body.is_deleted) notification.is_deleted = req.body.is_deleted;
     notification = await notification.save();
   }
-  return res.status(httpStatus.StatusCodes.OK).json(notification );
+  return res.status(httpStatus.StatusCodes.OK).json(notification);
 }
 
 // POST api/notification/:id/message
 async function previewNotificationMessage(req, res) {
-  const rest  = req.body;
+  const rest = req.body;
 
   const notification = await Notification.findById(req.params.id);
-  
+
   if (!notification) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),

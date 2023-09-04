@@ -122,17 +122,16 @@ async function updateNotification(req, res) {
   const { eventId, ...rest } = req.body;
 
   // Fetch the event by ID
-  const event = await knex('events').where('id', eventId).first();
-  if (!event) {
-    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
-      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
-      message: 'Invalid Event or Event Id not given',
-    });
-  }
+  // const event = await knex('events').where('id', eventId).first();
+  // if (!event) {
+  //   return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+  //     error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+  //     message: 'Invalid Event or Event Id not given',
+  //   });
+  // }
   const notification = await knex('notifications')
     .where('id', req.params.id)
     .first();
-
   if (!notification) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
@@ -143,7 +142,7 @@ async function updateNotification(req, res) {
     // check if notification with given name exist for the event
     const notification_exists = await knex('notifications')
       .where({ name: req.body.name })
-      .where({ event_id: eventId })
+      .where({ event_id: notification.event_id })
       .first();
     if (notification_exists) {
       return res.status(httpStatus.StatusCodes.CONFLICT).json({
@@ -152,7 +151,6 @@ async function updateNotification(req, res) {
       });
     }
   }
-
   if (req.body.templatebody) {
     const tagsArray = parseTemplate(req.body.templatebody);
     // Convert tags array to JSON string

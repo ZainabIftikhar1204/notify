@@ -195,10 +195,11 @@ describe('/api/notifications', () => {
         .patch('/api/notifications/1')
         .send({
           name: 'notification1-updated',
-          eventId: 1,
+
           description: 'notification1 desc',
           templatebody: 'notification1 template {{name}}',
         });
+      // console.log(response);
       expect(response.status).toBe(httpStatus.StatusCodes.OK);
     });
 
@@ -207,7 +208,7 @@ describe('/api/notifications', () => {
         .patch('/api/notifications/101')
         .send({
           name: 'notification1',
-          eventId: 1,
+
           description: 'notification1 desc',
           templatebody: 'notification1 template {{name}}',
         });
@@ -219,24 +220,12 @@ describe('/api/notifications', () => {
         .patch('/api/notifications/1')
         .send({
           name: 'notification1-updated',
-          eventId: 1,
           description: 'notification1 desc',
           templatebody: 'notification1 template {{name}}',
         });
-      tagsTemp = response.body.tags;
+
       expect(response.status).toBe(httpStatus.StatusCodes.OK);
       expect(response.body.tags[0].label).toEqual('name');
-    });
-
-    it('should return 400 if notification event_id is not provided', async () => {
-      const response = await request(server)
-        .patch('/api/notifications/1')
-        .send({
-          name: 'notification1',
-          description: 'notification1 desc',
-          templatebody: 'notification1 template {{name}}',
-        });
-      expect(response.status).toBe(httpStatus.StatusCodes.BAD_REQUEST);
     });
 
     it('should rerurn 200 if the tag array is updated based on the tags in new template body passed', async () => {
@@ -244,7 +233,6 @@ describe('/api/notifications', () => {
         .patch('/api/notifications/1')
         .send({
           name: 'notification1-updated',
-          eventId: 1,
           description: 'notification1 desc',
           templatebody: 'notification1 template {{age}}',
         });

@@ -75,6 +75,74 @@ describe('listAllApplications', () => {
       },
     });
   });
+  it('should return applications filtered by name', async () => {
+    // Prepare a mock request and response
+    const req = httpMocks.createRequest({
+      method: 'GET',
+      url: '/api/applications',
+      query: {
+        page: 1,
+        limit: 3,
+        name: 'Hassan',
+      },
+      filter: { name: 'Hassan' },
+    });
+    const res = httpMocks.createResponse();
+
+    // Mock the Knex query methods
+    const mockApplications = [
+      {
+        id: 1,
+        name: 'Hassan',
+        description: 'This is a test application',
+        is_deleted: false,
+        is_active: true,
+      },
+      {
+        id: 2,
+        name: 'Test Application 2',
+        description: 'This is a test application 2',
+        is_deleted: false,
+        is_active: true,
+      },
+    ];
+
+    knex.mockReturnValue({
+      count: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnValue({
+          first: jest.fn().mockReturnValue({
+            totalDocuments: 1,
+          }),
+        }),
+      }),
+
+      select: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnValue({
+          offset: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue(mockApplications),
+          }),
+        }),
+      }),
+    });
+
+    await listAllApplications(req, res);
+    // Parse the response data
+    const responseData = JSON.parse(res._getData());
+
+    // Assertions
+    expect(res.statusCode).toBe(200);
+    expect(res._isEndCalled()).toBeTruthy();
+    expect(responseData).toEqual({
+      applications: mockApplications,
+      pagination: {
+        currentPage: 1,
+        totalPages: 1,
+        pageSize: 3,
+        totalCount: 1,
+      },
+    });
+  });
+
   it('should return 404 if no applications are found', async () => {
     // Prepare a mock request and response
     const req = httpMocks.createRequest({

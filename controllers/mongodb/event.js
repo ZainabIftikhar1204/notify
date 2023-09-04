@@ -3,28 +3,37 @@ const httpStatus = require('http-status-codes');
 const { Application } = require('../../models/application');
 const { Event } = require('../../models/event');
 
-// GET api/events?applicationId=xxx
 async function listAllEvents(req, res) {
-  let { filter } = req; // Default to empty filter if not specified
-  filter = { ...filter, applicationId: req.query.applicationId };
+  const { filter } = req; // Default to empty filter if not specified
+  const { sort, sortby } = req.query;
 
   if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
+
   const application = await Application.findById(req.query.applicationId);
-  if (!application)
+
+  if (!application) {
     return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
       error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
       message: 'No applications found.',
     });
-
+  }
   const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 10 if not specified
+  const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 3 if not specified
 
   const startIndex = (page - 1) * limit;
+
+  const query = Event.find(filter).skip(startIndex).limit(limit);
+
+  // Apply sorting based on sort and sortby query parameters
+  if (sortby === 'name' || sortby === 'is_active') {
+    const sortOrder = sort === 'desc' ? -1 : 1;
+    query.sort({ [sortby]: sortOrder });
+  }
 
   const totalDocuments = await Event.countDocuments(filter);
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const events = await Event.find(filter).skip(startIndex).limit(limit);
+  const events = await query;
 
   const paginationInfo = {
     currentPage: page,

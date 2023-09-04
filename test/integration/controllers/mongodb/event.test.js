@@ -24,6 +24,8 @@ describe('/api/events', () => {
     const application = await Application.collection.insertOne({
       name: 'app1',
       description: 'app1 desc',
+      is_active: true,
+      is_deleted: false,
     });
     applicationId = application.insertedId;
 
@@ -32,16 +34,19 @@ describe('/api/events', () => {
         name: 'event1',
         description: 'event1 desc',
         applicationId,
+        is_deleted: false,
       },
       {
         name: 'event2',
         description: 'event2 desc',
         applicationId,
+        is_deleted: false,
       },
       {
         name: 'event3',
         description: 'event3 desc',
         applicationId,
+        is_deleted: false,
       },
     ];
 
@@ -57,8 +62,8 @@ describe('/api/events', () => {
       const response = await request(server).get(
         `/api/events/?applicationId=${applicationId}`,
       );
+      // console.log(response);
       const { events } = response.body;
-
       expect(response.status).toBe(200);
       expect(events.length).toBe(3);
       expect(events.some((event) => event.name === 'event1')).toBeTruthy();
@@ -75,7 +80,36 @@ describe('/api/events', () => {
 
       expect(response.status).toBe(404);
     });
-
+    it('should test pagination with page =1 and limit = 1', async () => {
+      const response = await request(server).get(
+        `/api/events/?applicationId=${applicationId}&page=1&limit=1`,
+      );
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('events');
+      expect(response.body.events.length).toEqual(1);
+      expect(response.body).toHaveProperty('pagination');
+      expect(response.body.pagination).toHaveProperty('pageSize');
+    });
+    it('should test filter by name incomplete', async () => {
+      const response = await request(server).get(
+        `/api/events/?applicationId=${applicationId}&name=ev`,
+      );
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('events');
+      expect(response.body.events.length).toEqual(3);
+      expect(response.body).toHaveProperty('pagination');
+      expect(response.body.pagination).toHaveProperty('pageSize');
+    });
+    it('should test filter by name complete', async () => {
+      const response = await request(server).get(
+        `/api/events/?applicationId=${applicationId}&name=event1`,
+      );
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('events');
+      expect(response.body.events.length).toEqual(1);
+      expect(response.body).toHaveProperty('pagination');
+      expect(response.body.pagination).toHaveProperty('pageSize');
+    });
     it('should return empty array if no events are found', async () => {
       await Event.deleteMany({});
 

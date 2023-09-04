@@ -21,11 +21,7 @@ describe('/api/applications', () => {
   });
 
   afterEach(async () => {
-    try {
-      await knex.migrate.rollback(); // Rollback migrations after all tests
-    } catch (error) {
-      // console.log(error);
-    }
+    await knex.migrate.rollback(); // Rollback migrations after all tests
   });
 
   describe('GET /', () => {
@@ -40,11 +36,47 @@ describe('/api/applications', () => {
     it('should return all applications', async () => {
       const response = await request(server).get('/api/applications');
       const { applications } = response.body;
-      expect(response.status).toBe(httpStatus.OK);
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
       expect(applications.length).toBe(3);
       expect(applications.some((app) => app.name === 'app1')).toBeTruthy();
       expect(applications.some((app) => app.name === 'app2')).toBeTruthy();
       expect(applications.some((app) => app.name === 'app3')).toBeTruthy();
+    });
+    it('should test pagination  with page =1 and limit = 1', async () => {
+      const response = await request(server).get(
+        '/api/applications?page=1&limit=1',
+      );
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(response.body).toHaveProperty('applications');
+      expect(response.body.applications.length).toEqual(1);
+      expect(response.body).toHaveProperty('pagination');
+      expect(response.body.pagination).toHaveProperty('pageSize');
+    });
+    it('should test filter by name', async () => {
+      const response = await request(server).get('/api/applications?name=app1');
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(response.body).toHaveProperty('applications');
+      expect(response.body.applications.length).toEqual(1);
+      expect(response.body).toHaveProperty('pagination');
+      expect(response.body.pagination).toHaveProperty('pageSize');
+    });
+    it('should sort by name', async () => {
+      const response = await request(server).get(
+        '/api/applications?sortby=name&sort=desc',
+      );
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(response.body).toHaveProperty('applications');
+      expect(response.body.applications.length).toEqual(3);
+      expect(response.body).toHaveProperty('pagination');
+    });
+    it('should sort by is_active in ascending order', async () => {
+      const response = await request(server).get(
+        '/api/applications?sortby=is_active&sort=asc',
+      );
+      expect(response.status).toBe(httpStatus.StatusCodes.OK);
+      expect(response.body).toHaveProperty('applications');
+      expect(response.body.applications.length).toEqual(3);
+      expect(response.body).toHaveProperty('pagination');
     });
 
     it('should return 404 if no applications are found', async () => {

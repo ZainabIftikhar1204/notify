@@ -95,10 +95,6 @@ const validateUpdateNotification = (req, res, next) => {
     templatebody: Joi.string().min(10).max(250),
     is_active: Joi.boolean(),
     is_deleted: Joi.boolean(),
-    eventId:
-      config.get('database.dbName') === 'mongodb'
-        ? Joi.string().required() // For MongoDB
-        : Joi.number().integer().required(), // For PostgreSQL
   }).or('name', 'description', 'templatebody', 'is_active', 'is_deleted'); // At least one of these fields is required
   const { error } = schema.validate(req.body);
 
