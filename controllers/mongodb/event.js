@@ -18,7 +18,7 @@ async function listAllEvents(req, res) {
     });
   }
   const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 3 if not specified
+  const limit = parseInt(req.query.limit, 10) || 4; // Default limit to 3 if not specified
 
   const startIndex = (page - 1) * limit;
 

@@ -9,7 +9,7 @@
     "test_postgres": "jest --runInBand  --verbose -- test/unit/controllers/postgres && jest --runInBand --verbose -- test/integration/controllers/postgres",
     "test_mongo": "jest --runInBand  --verbose -- test/unit/controllers/mongodb && jest --runInBand --verbose -- test/integration/controllers/mongodb",
     "test_middleware": "jest --runInBand --verbose -- test/unit/middleware && jest --runInBand  --verbose -- test/integration/middleware",
-    "test": "jest --runInBand --verbose -- test/integration/controllers/postgres/notification",
+    "test": "jest --runInBand --verbose -- test/integration/controllers/mongodb/notification",
     "migrate": "npx knex migrate:latest --knexfile startup/knexfile.js"
   },
   "keywords": [],
@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "config": "^3.3.9",
+    "cors": "^2.8.5",
     "debug": "^4.3.4",
     "express": "^4.18.2",
     "express-async-errors": "^3.1.1",

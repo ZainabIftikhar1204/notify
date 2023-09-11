@@ -105,6 +105,7 @@ const validateUpdateNotification = (req, res, next) => {
   next();
 };
 
+// different tags for different messages tackel krny
 const validateMessage = (req, res, next) => {
   const recipientSchema = Joi.object({
     email: Joi.string().email().required(),

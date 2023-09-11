@@ -10,7 +10,7 @@ async function listAllApplications(req, res) {
   if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
 
   const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit, 10) || 3; // Default limit to 3 if not specified
+  const limit = parseInt(req.query.limit, 10) || 4; // Default limit to 3 if not specified
   const startIndex = (page - 1) * limit;
 
   const query = Application.find(filter).skip(startIndex).limit(limit);
@@ -87,7 +87,9 @@ async function updateApplication(req, res) {
   if (req.body.name) {
     const existingApplication = await Application.findOne({
       name: req.body.name,
+      _id: { $ne: req.params.id },
     });
+    console.log(existingApplication);
     if (existingApplication) {
       return res.status(httpStatus.StatusCodes.CONFLICT).json({
         error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.CONFLICT),
