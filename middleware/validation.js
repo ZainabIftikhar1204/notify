@@ -75,6 +75,7 @@ const validateNotification = (req, res, next) => {
     name: Joi.string().min(3).required(),
     description: Joi.string().min(5).required(),
     templatebody: Joi.string().min(10).max(250).required(),
+    templatesubject: Joi.string().min(10).max(50).required(),
     eventId:
       config.get('database.dbName') === 'mongodb'
         ? Joi.string().required() // For MongoDB
@@ -93,6 +94,7 @@ const validateUpdateNotification = (req, res, next) => {
     name: Joi.string().min(3),
     description: Joi.string().min(5),
     templatebody: Joi.string().min(10).max(250),
+    templatesubject: Joi.string().min(10).max(50),
     is_active: Joi.boolean(),
     is_deleted: Joi.boolean(),
   }).or('name', 'description', 'templatebody', 'is_active', 'is_deleted'); // At least one of these fields is required
