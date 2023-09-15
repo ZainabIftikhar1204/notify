@@ -129,6 +129,50 @@ const validateMessage = (req, res, next) => {
   next();
 };
 
+const validateAuth = (req, res, next) => {
+  const requestAuthSchema = Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+    created_at: Joi.date().default(new Date(Date.now())),
+    modified_at: Joi.date().default(new Date(Date.now())),
+    created_by: Joi.string().optional(),
+    modified_by: Joi.string().optional(),
+    is_active: Joi.boolean().default(true).optional(),
+  });
+
+  const { error } = requestAuthSchema.validate(req.body);
+
+  if (error) {
+    return res
+      .status(httpStatus.StatusCodes.BAD_REQUEST)
+      .json({ error: error.details[0].message });
+  }
+
+  next();
+};
+
+const validateUser = (req, res, next) => {
+  const requestUserSchema = Joi.object().keys({
+    name: Joi.string().required().min(3).max(255),
+    email: Joi.string().email().required(),
+    password: Joi.string().required().min(8).max(1000),
+    created_at: Joi.date().default(new Date(Date.now())),
+    modified_at: Joi.date().default(new Date(Date.now())),
+    created_by: Joi.string().optional(),
+    modified_by: Joi.string().optional(),
+    is_active: Joi.boolean().default(true).optional(),
+  });
+
+  const { error } = requestUserSchema.validate(req.body);
+
+  if (error) {
+    return res
+      .status(httpStatus.StatusCodes.BAD_REQUEST)
+      .json({ error: error.details[0].message });
+  }
+  next();
+};
+
 module.exports = {
   validateApp,
   validateUpdateApp,
@@ -137,4 +181,6 @@ module.exports = {
   validateNotification,
   validateUpdateNotification,
   validateMessage,
+  validateAuth,
+  validateUser,
 };
