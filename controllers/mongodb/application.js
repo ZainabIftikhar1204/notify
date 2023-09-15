@@ -32,12 +32,12 @@ async function listAllApplications(req, res) {
     totalCount: totalDocuments,
   };
 
-  if (applications.length === 0) {
-    return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
-      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
-      message: 'No applications found.',
-    });
-  }
+  // if (applications.length === 0) {
+  //   return res.status(httpStatus.StatusCodes.NOT_FOUND).json({
+  //     error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+  //     message: 'No applications found.',
+  //   });
+  // }
 
   return res
     .status(httpStatus.StatusCodes.OK)
