@@ -78,7 +78,6 @@ async function createNotification(req, res) {
   const existingNotification = await Notification.findOne({
     name: req.body.name,
     eventId: req.body.eventId,
-    _id: { $ne: req.params.id },
   });
   if (existingNotification)
     return res.status(httpStatus.StatusCodes.CONFLICT).json({
@@ -86,7 +85,7 @@ async function createNotification(req, res) {
       message: 'Notification with the name already exists.',
     });
 
-  const { name, description, templatebody } = req.body;
+  const { name, description, templatebody, templatesubject } = req.body;
   const parseTags = parseTemplate(templatebody);
 
   let notification = new Notification({
@@ -97,6 +96,7 @@ async function createNotification(req, res) {
     tags: parseTags,
     templatebody,
     is_active: true,
+    templatesubject,
   });
 
   const tagsArray = notification.tags;
@@ -152,6 +152,8 @@ async function updateNotification(req, res) {
     notification.tags = tagsArray;
     if (req.body.templatebody)
       notification.templatebody = req.body.templatebody;
+    if (req.body.templatesubject)
+      notification.templatesubject = req.body.templatesubject;
     if (req.body.is_active) notification.is_active = req.body.is_active;
     if (req.body.is_deleted) notification.is_deleted = req.body.is_deleted;
     notification = await notification.save();
@@ -172,7 +174,7 @@ async function previewNotificationMessage(req, res) {
     });
   }
 
-  const { name } = notification;
+  const { name, templatesubject } = notification;
   let { tags: notifcationTags } = notification;
   notifcationTags = notifcationTags.map((tag) => tag.label);
   const { applicationName, eventName, to: recipients } = rest;
@@ -181,13 +183,14 @@ async function previewNotificationMessage(req, res) {
     const { email, tags: metadata } = recipient;
     const userTags = Object.keys(metadata);
     let { templatebody } = notification;
+
     userTags.forEach((tag) => {
       if (notifcationTags.includes(tag)) {
         templatebody = templatebody.replace(`{{${tag}}}`, metadata[tag]);
       }
     });
 
-    templatebody = `${applicationName}\n${eventName}\n${name}\n${templatebody}`;
+    templatebody = `${applicationName}\n${eventName}\n${name}\n${templatesubject}\n${templatebody}`;
     const message = new Message({
       email,
       body: templatebody,

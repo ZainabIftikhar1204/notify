@@ -23,6 +23,12 @@ const notificationSchema = new mongoose.Schema({
     ref: 'Event', // Add a reference to the 'Application' model
     required: true,
   },
+  templatesubject: {
+    type: String,
+    required: true,
+    minlength: 10,
+    maxlength: 50,
+  },
   templatebody: {
     type: String,
     required: true,
