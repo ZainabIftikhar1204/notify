@@ -6,7 +6,7 @@ const httpStatus = require('http-status-codes');
 const validateApp = (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().min(3).max(50).required(),
-    description: Joi.string().min(5).required(),
+    description: Joi.string().min(10).max(200).required(),
     // is_deleted: Joi.boolean().default(false),
   });
 
@@ -24,7 +24,7 @@ const validateApp = (req, res, next) => {
 const validateUpdateApp = (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().min(3).max(50),
-    description: Joi.string().min(5),
+    description: Joi.string().min(10).max(200),
     is_deleted: Joi.boolean(),
     is_active: Joi.boolean(),
   }).or('name', 'description', 'is_deleted', 'is_active'); // At least one of these fields is required;
@@ -40,7 +40,7 @@ const validateUpdateApp = (req, res, next) => {
 const validateEvent = (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().min(3).max(50).required(),
-    description: Joi.string().max(50).min(5).required(),
+    description: Joi.string().max(200).min(10).required(),
     applicationId:
       config.get('database.dbName') === 'mongodb'
         ? Joi.string().required() // For MongoDB
@@ -58,7 +58,7 @@ const validateEvent = (req, res, next) => {
 const validateUpdateEvent = (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().min(3).max(50),
-    description: Joi.string().min(5).max(50),
+    description: Joi.string().min(10).max(200),
     is_deleted: Joi.boolean(),
     is_active: Joi.boolean(),
   }).or('name', 'description', 'is_deleted', 'is_active'); // At least one of these fields is required;
@@ -73,7 +73,7 @@ const validateUpdateEvent = (req, res, next) => {
 const validateNotification = (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().min(3).required(),
-    description: Joi.string().min(5).required(),
+    description: Joi.string().min(10).max(200).required(),
     templatebody: Joi.string().min(10).max(250).required(),
     templatesubject: Joi.string().min(10).max(50).required(),
     eventId:
@@ -92,7 +92,7 @@ const validateNotification = (req, res, next) => {
 const validateUpdateNotification = (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().min(3),
-    description: Joi.string().min(5),
+    description: Joi.string().min(10).max(200),
     templatebody: Joi.string().min(10).max(250),
     templatesubject: Joi.string().min(10).max(50),
     is_active: Joi.boolean(),

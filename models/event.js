@@ -10,8 +10,8 @@ const eventSchema = new mongoose.Schema({
   description: {
     type: String,
     required: true,
-    minlength: 5,
-    maxlength: 50,
+    minlength: 10,
+    maxlength: 200,
   },
   is_deleted: {
     type: Boolean,
@@ -25,6 +25,14 @@ const eventSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, // Change to mongoose.Schema.Types.ObjectId
     ref: 'Application', // Add a reference to the 'Application' model
     required: true,
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+  },
+  updated_at: {
+    type: String,
+    default: '',
   },
 });
 

@@ -25,7 +25,12 @@ async function listAllEvents(req, res) {
   const query = Event.find(filter).skip(startIndex).limit(limit);
 
   // Apply sorting based on sort and sortby query parameters
-  if (sortby === 'name' || sortby === 'is_active') {
+  if (
+    sortby === 'name' ||
+    sortby === 'is_active' ||
+    sortby === 'created_at' ||
+    sortby === 'updated_at'
+  ) {
     const sortOrder = sort === 'desc' ? -1 : 1;
     query.sort({ [sortby]: sortOrder });
   }
@@ -106,7 +111,13 @@ async function updateEvent(req, res) {
       });
     }
   }
+  const currentDate = new Date(); // Get the current date and time
+  const year = currentDate.getFullYear(); // Get the current year
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Get the current month (January is 0, so add 1)
+  const day = String(currentDate.getDate()).padStart(2, '0'); // Get the current day
 
+  const formattedDate = `${year}-${month}-${day}`;
+  rest.updated_at = formattedDate;
   event = await Event.findByIdAndUpdate(req.params.id, rest, {
     new: true,
   });

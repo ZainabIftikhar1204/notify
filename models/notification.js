@@ -11,8 +11,8 @@ const notificationSchema = new mongoose.Schema({
   description: {
     type: String,
     required: true,
-    minlength: 5,
-    maxlength: 50,
+    minlength: 10,
+    maxlength: 200,
   },
   is_deleted: {
     type: Boolean,
@@ -48,6 +48,14 @@ const notificationSchema = new mongoose.Schema({
   is_active: {
     type: Boolean,
     default: false,
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+  },
+  updated_at: {
+    type: String,
+    default: '',
   },
 });
 

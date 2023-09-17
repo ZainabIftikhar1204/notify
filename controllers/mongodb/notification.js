@@ -29,7 +29,12 @@ async function listAllNotifications(req, res) {
   const query = Notification.find(filter).skip(startIndex).limit(limit);
 
   // Apply sorting based on sort and sortby query parameters
-  if (sortby === 'name' || sortby === 'is_active') {
+  if (
+    sortby === 'name' ||
+    sortby === 'is_active' ||
+    sortby === 'created_at' ||
+    sortby === 'updated_at'
+  ) {
     const sortOrder = sort === 'desc' ? -1 : 1;
     query.sort({ [sortby]: sortOrder });
   }
@@ -156,6 +161,13 @@ async function updateNotification(req, res) {
       notification.templatesubject = req.body.templatesubject;
     if (req.body.is_active) notification.is_active = req.body.is_active;
     if (req.body.is_deleted) notification.is_deleted = req.body.is_deleted;
+    const currentDate = new Date(); // Get the current date and time
+    const year = currentDate.getFullYear(); // Get the current year
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Get the current month (January is 0, so add 1)
+    const day = String(currentDate.getDate()).padStart(2, '0'); // Get the current day
+
+    const formattedDate = `${year}-${month}-${day}`;
+    req.body.updated_at = formattedDate;
     notification = await notification.save();
   }
   return res.status(httpStatus.StatusCodes.OK).json(notification);

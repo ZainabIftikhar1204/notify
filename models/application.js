@@ -10,8 +10,8 @@ const applicationSchema = new mongoose.Schema({
   description: {
     type: String,
     required: true,
-    minlength: 5,
-    maxlength: 100,
+    minlength: 10,
+    maxlength: 200,
   },
   is_deleted: {
     type: Boolean,
@@ -20,6 +20,14 @@ const applicationSchema = new mongoose.Schema({
   is_active: {
     type: Boolean,
     default: true,
+  },
+  created_at: {
+    type: String,
+    default: '',
+  },
+  updated_at: {
+    type: String,
+    default: '',
   },
 });
 
