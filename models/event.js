@@ -31,8 +31,8 @@ const eventSchema = new mongoose.Schema({
     default: Date.now,
   },
   updated_at: {
-    type: String,
-    default: '',
+    type: Date,
+    default: null,
   },
 });
 

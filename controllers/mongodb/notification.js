@@ -81,8 +81,9 @@ async function createNotification(req, res) {
 
   // check if the notification with the same name already exists in the event
   const existingNotification = await Notification.findOne({
-    name: req.body.name,
+    name: { $regex: new RegExp(req.body.name, 'i') },
     eventId: req.body.eventId,
+    is_deleted: false,
   });
   if (existingNotification)
     return res.status(httpStatus.StatusCodes.CONFLICT).json({
@@ -130,9 +131,10 @@ async function updateNotification(req, res) {
   if (req.body.name) {
     // check if the notification with the same name already exists in the event
     const existingNotification = await Notification.findOne({
-      name: req.body.name,
+      name: { $regex: new RegExp(req.body.name, 'i') },
       eventId: notification.eventId,
       _id: { $ne: req.params.id },
+      is_deleted: false,
     });
     if (existingNotification)
       return res.status(httpStatus.StatusCodes.CONFLICT).json({
@@ -161,13 +163,8 @@ async function updateNotification(req, res) {
       notification.templatesubject = req.body.templatesubject;
     if (req.body.is_active) notification.is_active = req.body.is_active;
     if (req.body.is_deleted) notification.is_deleted = req.body.is_deleted;
-    const currentDate = new Date(); // Get the current date and time
-    const year = currentDate.getFullYear(); // Get the current year
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Get the current month (January is 0, so add 1)
-    const day = String(currentDate.getDate()).padStart(2, '0'); // Get the current day
 
-    const formattedDate = `${year}-${month}-${day}`;
-    req.body.updated_at = formattedDate;
+    req.body.updated_at = Date.now();
     notification = await notification.save();
   }
   return res.status(httpStatus.StatusCodes.OK).json(notification);

@@ -51,23 +51,17 @@ async function listAllApplications(req, res) {
 
 // POST /api/applications
 async function createApplication(req, res) {
-  const currentDate = new Date(); // Get the current date and time
-  const year = currentDate.getFullYear(); // Get the current year
-  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Get the current month (January is 0, so add 1)
-  const day = String(currentDate.getDate()).padStart(2, '0'); // Get the current day
-  const formattedDate = `${year}-${month}-${day}`;
-
   let application = new Application({
     name: req.body.name,
     description: req.body.description,
     is_deleted: false,
     is_active: true,
-    created_at: formattedDate,
   });
 
   // check if application with the same name already exists
   const existingApplication = await Application.findOne({
     name: { $regex: new RegExp(req.body.name, 'i') },
+    is_deleted: false,
   });
   if (existingApplication) {
     return res.status(httpStatus.StatusCodes.CONFLICT).json({
@@ -94,6 +88,7 @@ async function updateApplication(req, res) {
     const existingApplication = await Application.findOne({
       name: { $regex: new RegExp(req.body.name, 'i') },
       _id: { $ne: req.params.id },
+      is_deleted: false,
     });
     if (existingApplication) {
       return res.status(httpStatus.StatusCodes.CONFLICT).json({
@@ -102,12 +97,9 @@ async function updateApplication(req, res) {
       });
     }
   }
-  const currentDate = new Date(); // Get the current date and time
-  const year = currentDate.getFullYear(); // Get the current year
-  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Get the current month (January is 0, so add 1)
-  const day = String(currentDate.getDate()).padStart(2, '0'); // Get the current day
 
-  const formattedDate = `${year}-${month}-${day}`;
+  const formattedDate = Date.now();
+
   req.body.updated_at = formattedDate;
   application = await Application.findByIdAndUpdate(req.params.id, req.body, {
     new: true,

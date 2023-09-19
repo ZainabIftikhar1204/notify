@@ -22,12 +22,12 @@ const applicationSchema = new mongoose.Schema({
     default: true,
   },
   created_at: {
-    type: String,
-    default: '',
+    type: Date,
+    default: Date.now,
   },
   updated_at: {
-    type: String,
-    default: '',
+    type: Date,
+    default: null,
   },
 });
 

@@ -63,8 +63,9 @@ async function createEvent(req, res) {
 
   // check if the event with the same name already exists in the application
   const existingEvent = await Event.findOne({
-    name: req.body.name,
+    name: { $regex: new RegExp(req.body.name, 'i') },
     applicationId: req.body.applicationId,
+    is_deleted: false,
   });
 
   if (existingEvent) {
@@ -100,8 +101,9 @@ async function updateEvent(req, res) {
   // check if the event with the same name already exists in the application
   if (req.body.name) {
     const existingEvent = await Event.findOne({
-      name: req.body.name,
+      name: { $regex: new RegExp(req.body.name, 'i') },
       applicationId: event.applicationId,
+      is_deleted: false,
       _id: { $ne: req.params.id },
     });
     if (existingEvent) {
@@ -111,13 +113,17 @@ async function updateEvent(req, res) {
       });
     }
   }
-  const currentDate = new Date(); // Get the current date and time
-  const year = currentDate.getFullYear(); // Get the current year
-  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Get the current month (January is 0, so add 1)
-  const day = String(currentDate.getDate()).padStart(2, '0'); // Get the current day
+  // const currentDate = new Date(); // Get the current date and time
+  // const year = currentDate.getFullYear(); // Get the current year
+  // const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Get the current month (January is 0, so add 1)
+  // const day = String(currentDate.getDate()).padStart(2, '0'); // Get the current day
+  // const hours = String(currentDate.getHours()).padStart(2, '0'); // Get the current hour
+  // const minutes = String(currentDate.getMinutes()).padStart(2, '0'); // Get the current minute
+  // const seconds = String(currentDate.getSeconds()).padStart(2, '0'); // Get the current second
+  // const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
-  const formattedDate = `${year}-${month}-${day}`;
-  rest.updated_at = formattedDate;
+  // const formattedDate = `${year}-${month}-${day}`;
+  rest.updated_at = Date.now();
   event = await Event.findByIdAndUpdate(req.params.id, rest, {
     new: true,
   });
