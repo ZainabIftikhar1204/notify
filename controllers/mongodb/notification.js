@@ -12,7 +12,10 @@ async function listAllNotifications(req, res) {
   const { filter } = req; // Default to empty filter if not specified
   const { sort, sortby } = req.query;
 
-  if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
+  if (filter.name) {
+    filter.name = filter.name.trim();
+    filter.name = { $regex: filter.name, $options: 'i' };
+  }
 
   const event = await Event.findById(req.query.eventId);
   if (!event)
@@ -80,6 +83,7 @@ async function createNotification(req, res) {
     });
 
   // check if the notification with the same name already exists in the event
+  req.body.name = req.body.name.trim();
   const existingNotification = await Notification.findOne({
     name: { $regex: new RegExp(req.body.name, 'i') },
     eventId: req.body.eventId,
@@ -130,6 +134,7 @@ async function updateNotification(req, res) {
     });
   if (req.body.name) {
     // check if the notification with the same name already exists in the event
+    req.body.name = req.body.name.trim();
     const existingNotification = await Notification.findOne({
       name: { $regex: new RegExp(req.body.name, 'i') },
       eventId: notification.eventId,

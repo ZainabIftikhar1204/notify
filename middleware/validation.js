@@ -133,7 +133,13 @@ const validateMessage = (req, res, next) => {
 
 const validateAuth = (req, res, next) => {
   const requestAuthSchema = Joi.object().keys({
-    email: Joi.string().email().required(),
+    email: Joi.string()
+      .email()
+      .required()
+      .error((err) => {
+        err[0].message = 'Please enter a valid email address';
+        return err;
+      }),
     password: Joi.string().required(),
     created_at: Joi.date().default(new Date(Date.now())),
     modified_at: Joi.date().default(new Date(Date.now())),

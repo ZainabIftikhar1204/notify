@@ -7,7 +7,10 @@ async function listAllApplications(req, res) {
   const { filter } = req; // Default to empty filter if not specified
   const { sort, sortby } = req.query;
 
-  if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
+  if (filter.name) {
+    filter.name = filter.name.trim();
+    filter.name = { $regex: filter.name, $options: 'i' };
+  }
 
   const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not specified
   const limit = parseInt(req.query.limit, 10) || 4; // Default limit to 3 if not specified
@@ -52,7 +55,7 @@ async function listAllApplications(req, res) {
 // POST /api/applications
 async function createApplication(req, res) {
   let application = new Application({
-    name: req.body.name,
+    name: req.body.name.trim(),
     description: req.body.description,
     is_deleted: false,
     is_active: true,
@@ -85,6 +88,7 @@ async function updateApplication(req, res) {
   }
 
   if (req.body.name) {
+    req.body.name = req.body.name.trim();
     const existingApplication = await Application.findOne({
       name: { $regex: new RegExp(req.body.name, 'i') },
       _id: { $ne: req.params.id },

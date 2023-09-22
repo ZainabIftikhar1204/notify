@@ -7,7 +7,10 @@ async function listAllEvents(req, res) {
   const { filter } = req; // Default to empty filter if not specified
   const { sort, sortby } = req.query;
 
-  if (filter.name) filter.name = { $regex: filter.name, $options: 'i' };
+  if (filter.name) {
+    filter.name = filter.name.trim();
+    filter.name = { $regex: filter.name, $options: 'i' };
+  }
 
   const application = await Application.findById(req.query.applicationId);
 
@@ -62,6 +65,7 @@ async function createEvent(req, res) {
     });
 
   // check if the event with the same name already exists in the application
+  req.body.name = req.body.name.trim();
   const existingEvent = await Event.findOne({
     name: { $regex: new RegExp(req.body.name, 'i') },
     applicationId: req.body.applicationId,
@@ -100,6 +104,7 @@ async function updateEvent(req, res) {
 
   // check if the event with the same name already exists in the application
   if (req.body.name) {
+    req.body.name = req.body.name.trim();
     const existingEvent = await Event.findOne({
       name: { $regex: new RegExp(req.body.name, 'i') },
       applicationId: event.applicationId,
